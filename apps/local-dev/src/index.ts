@@ -1,27 +1,18 @@
 import { join } from 'node:path'
 import { loadConfig } from '@atlas/config'
 import { initTelemetry, shutdownTelemetry } from '@atlas/otel'
-import { createDatabase, runMigrations, healthCheck as dbHealth } from '@atlas/db'
-import { createRedis, healthCheck as redisHealth } from '@atlas/cache'
+import * as db from '@atlas/db'
+import * as cache from '@atlas/cache'
 import { createEventBus } from '@atlas/events'
 import { createProvider } from '@atlas/ai'
 import { createGraphitiClient } from '@atlas/memory'
-import { createToolRegistry } from '@atlas/tools'
+import { createToolRegistry, createSearchTool, createHttpTool, createReminderTool } from '@atlas/tools'
 import { createRuntime, type RuntimeServices } from '@atlas/core'
-import { createSearchTool, createHttpTool, createReminderTool } from '@atlas/tools'
 import { printConfig } from './banner'
 import { createCliAdapter } from './cli-adapter'
 
 const SIGNALS = ['SIGINT', 'SIGTERM'] as const
 const MIGRATIONS_DIR = join(import.meta.dir, '../../../packages/db/migrations')
-
-type ServiceRefs = {
-  readonly eventBus: { readonly close: () => Promise<void> }
-  readonly redis: { readonly quit: () => Promise<unknown> }
-  readonly db: { readonly end: () => Promise<unknown> }
-}
-
-let shuttingDown = false
 
 const prompt = (): void => {
   process.stdout.write('you> ')
@@ -45,17 +36,6 @@ const checkHealth = async (name: string, check: () => Promise<boolean>): Promise
   return ok
 }
 
-const shutdown = async (services: ServiceRefs): Promise<void> => {
-  if (shuttingDown) return
-  shuttingDown = true
-  console.log('\nShutting down...')
-  await services.eventBus.close()
-  await services.redis.quit()
-  await services.db.end()
-  await shutdownTelemetry()
-  process.exit(0)
-}
-
 const start = async (): Promise<void> => {
   const config = loadConfig()
   printConfig(config)
@@ -63,13 +43,13 @@ const start = async (): Promise<void> => {
   initTelemetry(config.otel)
 
   console.log('Health checks:')
-  const db = createDatabase(config.postgres)
-  const redis = createRedis(config.redis)
+  const sql = db.createDatabase(config.postgres)
+  const redis = cache.createRedis(config.redis)
   const memory = createGraphitiClient(config.graphiti)
 
   const [dbOk, redisOk, memoryOk] = await Promise.all([
-    checkHealth('PostgreSQL', () => dbHealth(db)),
-    checkHealth('Redis', () => redisHealth(redis)),
+    checkHealth('PostgreSQL', () => db.healthCheck(sql)),
+    checkHealth('Redis', () => cache.healthCheck(redis)),
     checkHealth('Graphiti', () => memory.healthCheck()),
   ])
 
@@ -86,14 +66,14 @@ const start = async (): Promise<void> => {
   }
 
   console.log('\nRunning migrations...')
-  const applied = await runMigrations(db, MIGRATIONS_DIR)
+  const applied = await db.runMigrations(sql, MIGRATIONS_DIR)
   if (applied.length > 0) {
     console.log(`  Applied ${applied.length} migration(s): ${applied.join(', ')}`)
   } else {
     console.log('  No pending migrations.')
   }
 
-  const eventBus = await createEventBus({ db, redis })
+  const eventBus = await createEventBus({ db: sql, redis })
   const aiProvider = createProvider(config.ai)
   const tools = createToolRegistry()
 
@@ -103,7 +83,7 @@ const start = async (): Promise<void> => {
 
   const services: RuntimeServices = {
     eventBus,
-    db,
+    db: sql,
     redis,
     memory,
     aiProvider,
@@ -115,15 +95,26 @@ const start = async (): Promise<void> => {
   const runtime = createRuntime(services)
   const adapter = createCliAdapter()
 
-  console.log('\nRuntime initialized. Type a message and press Enter. Ctrl+C to exit.\n')
+  let shuttingDown = false
+  const shutdown = async (): Promise<void> => {
+    if (shuttingDown) return
+    shuttingDown = true
+    console.log('\nShutting down...')
+    await eventBus.close()
+    await redis.quit()
+    await sql.end()
+    await shutdownTelemetry()
+    process.exit(0)
+  }
 
   for (const sig of SIGNALS) {
     process.on(sig, () => {
       console.log(`\nReceived ${sig}`)
-      void shutdown({ eventBus, redis, db })
+      void shutdown()
     })
   }
 
+  console.log('\nRuntime initialized. Type a message and press Enter. Ctrl+C to exit.\n')
   process.stdin.setEncoding('utf-8')
   prompt()
 
@@ -148,7 +139,7 @@ const start = async (): Promise<void> => {
     prompt()
   }
 
-  await shutdown({ eventBus, redis, db })
+  await shutdown()
 }
 
 start().catch((error) => {

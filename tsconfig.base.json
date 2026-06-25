@@ -18,7 +18,24 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "@atlas/types": ["./packages/types/src/index.ts"],
+      "@atlas/primitives": ["./packages/primitives/src/index.ts"],
+      "@atlas/config": ["./packages/config/src/index.ts"],
+      "@atlas/otel": ["./packages/otel/src/index.ts"],
+      "@atlas/db": ["./packages/db/src/index.ts"],
+      "@atlas/cache": ["./packages/cache/src/index.ts"],
+      "@atlas/events": ["./packages/events/src/index.ts"],
+      "@atlas/ai": ["./packages/ai/src/index.ts"],
+      "@atlas/memory": ["./packages/memory/src/index.ts"],
+      "@atlas/tools": ["./packages/tools/src/index.ts"],
+      "@atlas/jobs": ["./packages/jobs/src/index.ts"],
+      "@atlas/core": ["./packages/core/src/index.ts"],
+      "@atlas/slack": ["./packages/adapters/slack/src/index.ts"],
+      "@atlas/discord": ["./packages/adapters/discord/src/index.ts"],
+      "@atlas/linear": ["./packages/adapters/linear/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "dist"]
 }

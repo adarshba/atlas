@@ -1,15 +1,11 @@
 import { Worker, type Job } from 'bullmq'
 import type { Redis } from '@atlas/cache'
 import { withSpan } from '@atlas/otel'
-import { QUEUE_NAMES, type QueueName } from './queues'
+import type { QueueName } from './queues'
 
 export type JobHandler = (job: Job) => Promise<void>
 
-export const createWorker = (
-  redis: Redis,
-  queueName: QueueName,
-  handler: JobHandler,
-): Worker => {
+export const createWorker = (redis: Redis, queueName: QueueName, handler: JobHandler): Worker => {
   const connection = {
     host: redis.options.host ?? 'localhost',
     port: redis.options.port ?? 6379,

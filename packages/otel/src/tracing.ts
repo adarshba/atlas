@@ -1,4 +1,10 @@
-import { trace, type Span, type SpanOptions, type Tracer, type Attributes } from '@opentelemetry/api'
+import {
+  trace,
+  type Span,
+  type SpanOptions,
+  type Tracer,
+  type Attributes,
+} from '@opentelemetry/api'
 
 const getTracer = (): Tracer => trace.getTracer('@atlas/otel')
 

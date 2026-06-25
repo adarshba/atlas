@@ -1,4 +1,4 @@
-import type { PlatformType, PlatformRef, PlatformUser } from './platform'
+import type { PlatformType, PlatformRef, PlatformUser, InboundMessage } from './platform'
 
 export type EventType =
   | 'MessageReceived'
@@ -28,11 +28,11 @@ export type BaseEvent = {
 }
 
 export type MessageReceivedPayload = {
-  readonly message: import('./platform').InboundMessage
+  readonly message: InboundMessage
 }
 
 export type MentionReceivedPayload = {
-  readonly message: import('./platform').InboundMessage
+  readonly message: InboundMessage
 }
 
 export type ThreadCreatedPayload = {

@@ -77,11 +77,7 @@ const fetchSlackUser = async (
   })
 }
 
-export const createNormalizeInbound = (
-  token: string,
-  apiBase: string,
-  ctx: AdapterContext,
-) => {
+export const createNormalizeInbound = (token: string, apiBase: string, ctx: AdapterContext) => {
   return async (rawEvent: unknown): Promise<InboundMessage> => {
     return withSpan('slack.normalizeInbound', async (): Promise<InboundMessage> => {
       const payload = rawEvent as SlackEventPayload

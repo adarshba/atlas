@@ -24,10 +24,7 @@ const getAppliedMigrations = async (sql: Database): Promise<Set<string>> => {
   return new Set(rows.map((row) => row.name as string))
 }
 
-export const runMigrations = async (
-  sql: Database,
-  migrationsDir: string,
-): Promise<string[]> => {
+export const runMigrations = async (sql: Database, migrationsDir: string): Promise<string[]> => {
   await ensureMigrationsTable(sql)
 
   const files = await listMigrationFiles(migrationsDir)

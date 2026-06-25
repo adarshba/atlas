@@ -6,7 +6,12 @@ import * as cache from '@atlas/cache'
 import { createEventBus } from '@atlas/events'
 import { createProvider } from '@atlas/ai'
 import { createGraphitiClient } from '@atlas/memory'
-import { createToolRegistry, createSearchTool, createHttpTool, createReminderTool } from '@atlas/tools'
+import {
+  createToolRegistry,
+  createSearchTool,
+  createHttpTool,
+  createReminderTool,
+} from '@atlas/tools'
 import { createRuntime, type RuntimeServices } from '@atlas/core'
 import { printConfig } from './banner'
 import { createCliAdapter } from './cli-adapter'

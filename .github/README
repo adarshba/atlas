@@ -62,31 +62,31 @@ Platforms
 PROJECT STRUCTURE
 
 packages/
-├── types/            @atlas/types — domain types, zero deps
-├── primitives/       @atlas/primitives — result, async, time, id
-├── config/           @atlas/config — Zod-validated env config
-├── otel/             @atlas/otel — manual OTel, withSpan, metrics, logs
-├── db/               @atlas/db — postgres.js, migrations, traced queries
-├── cache/            @atlas/cache — ioredis, traced ops, pub/sub
-├── events/           @atlas/events — event bus, PostgreSQL persistence, Redis pub/sub
-├── ai/               @atlas/ai — Vercel SDK wrapper, generate, stream, structured, tools
-├── memory/           @atlas/memory — Graphiti REST client, episode storage, fact search
-├── tools/            @atlas/tools — registry, execution, builtins (search, http, reminder)
-├── jobs/             @atlas/jobs — BullMQ queues, workers, enqueue
-├── core/             @atlas/core — runtime engine, planner pipeline, session store
+├── types/ @atlas/types — domain types, zero deps
+├── primitives/ @atlas/primitives — result, async, time, id
+├── config/ @atlas/config — Zod-validated env config
+├── otel/ @atlas/otel — manual OTel, withSpan, metrics, logs
+├── db/ @atlas/db — postgres.js, migrations, traced queries
+├── cache/ @atlas/cache — ioredis, traced ops, pub/sub
+├── events/ @atlas/events — event bus, PostgreSQL persistence, Redis pub/sub
+├── ai/ @atlas/ai — Vercel SDK wrapper, generate, stream, structured, tools
+├── memory/ @atlas/memory — Graphiti REST client, episode storage, fact search
+├── tools/ @atlas/tools — registry, execution, builtins (search, http, reminder)
+├── jobs/ @atlas/jobs — BullMQ queues, workers, enqueue
+├── core/ @atlas/core — runtime engine, planner pipeline, session store
 └── adapters/
-    ├── slack/        @atlas/slack — Slack platform adapter
-    ├── discord/      @atlas/discord — Discord platform adapter
-    └── linear/       @atlas/linear — Linear platform adapter
+├── slack/ @atlas/slack — Slack platform adapter
+├── discord/ @atlas/discord — Discord platform adapter
+└── linear/ @atlas/linear — Linear platform adapter
 
 apps/
-└── local-dev/        @atlas/local-dev — interactive CLI, wiring, Docker Compose
+└── local-dev/ @atlas/local-dev — interactive CLI, wiring, Docker Compose
 
 docs/
-└── adr/              14 architecture decision records
+└── adr/ 14 architecture decision records
 
 docker/
-└── compose.yaml      PostgreSQL, Redis, FalkorDB, Graphiti, OTEL Collector
+└── compose.yaml PostgreSQL, Redis, FalkorDB, Graphiti, OTEL Collector
 
 DEVELOPMENT
 
@@ -110,33 +110,33 @@ bun run dev
 
 COMMANDS
 
-bun run dev          Start local-dev CLI (interactive, --watch)
-bun run build        Build all packages (bun build + tsc declarations)
-bun run typecheck    Typecheck all packages (tsc --noEmit)
-bun test             Run tests (bun test)
-bun run lint         Lint with ESLint
-bun run format       Format with Prettier
-bash compose.sh up   Start infrastructure (podman or docker)
+bun run dev Start local-dev CLI (interactive, --watch)
+bun run build Build all packages (bun build + tsc declarations)
+bun run typecheck Typecheck all packages (tsc --noEmit)
+bun test Run tests (bun test)
+bun run lint Lint with ESLint
+bun run format Format with Prettier
+bash compose.sh up Start infrastructure (podman or docker)
 bash compose.sh down Stop infrastructure
 
 ARCHITECTURE
 
 Platform events flow through a single pipeline:
 
-  Slack / Discord / Linear
-        |
-  Platform Adapters (normalize events, send responses)
-        |
-  Event Bus (immutable events, PostgreSQL persistence, Redis pub/sub)
-        |
-  Atlas Runtime (core engine — platform-agnostic)
-  +--------+----------+-----------+
-  |        |          |           |
-  Planner  Memory    Tool Manager
-  |        |          |
-  +--------+----------+
-        |
-  AI Provider (Vercel SDK -> LiteLLM)
+Slack / Discord / Linear
+|
+Platform Adapters (normalize events, send responses)
+|
+Event Bus (immutable events, PostgreSQL persistence, Redis pub/sub)
+|
+Atlas Runtime (core engine — platform-agnostic)
++--------+----------+-----------+
+| | | |
+Planner Memory Tool Manager
+| | |
++--------+----------+
+|
+AI Provider (Vercel SDK -> LiteLLM)
 
 The planner pipeline: observe -> retrieve context -> plan ->
 execute tools -> generate response -> persist memory.

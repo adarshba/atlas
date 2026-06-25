@@ -1,13 +1,17 @@
-import { trace, metrics } from '@opentelemetry/api'
+import { metrics } from '@opentelemetry/api'
 import { logs } from '@opentelemetry/api-logs'
-import { BasicTracerProvider, BatchSpanProcessor, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
+import { BasicTracerProvider, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base'
 import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { LoggerProvider, BatchLogRecordProcessor } from '@opentelemetry/sdk-logs'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http'
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http'
 import { Resource } from '@opentelemetry/resources'
-import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION, ATTR_DEPLOYMENT_ENVIRONMENT_NAME } from '@opentelemetry/semantic-conventions'
+import {
+  ATTR_SERVICE_NAME,
+  ATTR_SERVICE_VERSION,
+  ATTR_DEPLOYMENT_ENVIRONMENT_NAME,
+} from '@opentelemetry/semantic-conventions'
 import type { OtelConfig } from '@atlas/types'
 
 let initialized = false

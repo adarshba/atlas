@@ -48,10 +48,7 @@ export const createSlackAdapter = (config: SlackConfig): PlatformAdapter => {
 
   const getCapabilities = () => SLACK_CAPABILITIES
 
-  const resolveUser = async (
-    platformUserId: string,
-    _teamId: string,
-  ): Promise<PlatformUser> => {
+  const resolveUser = async (platformUserId: string, _teamId: string): Promise<PlatformUser> => {
     return withSpan('slack.resolveUser', async (): Promise<PlatformUser> => {
       const res = await fetch(`${apiBase}/users.info`, {
         method: 'POST',

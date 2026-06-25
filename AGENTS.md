@@ -51,6 +51,9 @@ Coding standards for Atlas. Follow these rules when writing or modifying code.
 - **Conventional commits** — `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`.
 - **`--no-verify` needed for push** — GitGuardian blocks pushes otherwise.
 - **Never commit `.env`** — only `.env.example`.
+- **Never commit without explicit user approval** — stage changes, show the user what's staged, and let them decide. Do not commit proactively.
+- **Verify before staging** — always run `bun run lint`, `bunx tsc --noEmit -p tsconfig.base.json`, and `bun run build` before considering work done. Fix all errors. Only then stage.
+- **Run `bun run format`** after changes to keep Prettier compliance.
 
 ## What NOT to Do
 

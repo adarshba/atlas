@@ -1,7 +1,9 @@
+import type { PlatformRef } from './platform'
+
 export type Session = {
   readonly id: string
   readonly platform: string
-  readonly platformRef: import('./platform').PlatformRef
+  readonly platformRef: PlatformRef
   readonly userId: string
   readonly createdAt: Date
   readonly lastActiveAt: Date

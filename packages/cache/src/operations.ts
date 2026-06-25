@@ -8,7 +8,12 @@ export const get = async (redis: Redis, key: string): Promise<string | null> => 
   })
 }
 
-export const set = async (redis: Redis, key: string, value: string, ttlSeconds?: number): Promise<void> => {
+export const set = async (
+  redis: Redis,
+  key: string,
+  value: string,
+  ttlSeconds?: number,
+): Promise<void> => {
   return withSpan('cache.set', async (span) => {
     span.setAttribute('cache.key', key)
     if (ttlSeconds) {

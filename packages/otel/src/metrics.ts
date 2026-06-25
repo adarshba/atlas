@@ -24,10 +24,18 @@ export const createHistogram = (name: string, description: string): Histogram =>
   return histogram
 }
 
-export const incrementCounter = (name: string, value = 1, attributes?: Record<string, string>): void => {
+export const incrementCounter = (
+  name: string,
+  value = 1,
+  attributes?: Record<string, string>,
+): void => {
   createCounter(name, '').add(value, attributes)
 }
 
-export const recordHistogram = (name: string, value: number, attributes?: Record<string, string>): void => {
+export const recordHistogram = (
+  name: string,
+  value: number,
+  attributes?: Record<string, string>,
+): void => {
   createHistogram(name, '').record(value, attributes)
 }

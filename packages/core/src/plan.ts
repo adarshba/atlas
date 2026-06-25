@@ -25,9 +25,10 @@ export const plan = (observation: Observation): PlannerDecision => {
     shouldRespond: true,
     shouldUseTools: toolsRequired.length > 0,
     toolsRequired,
-    reasoning: toolsRequired.length > 0
-      ? `Message suggests tool usage: ${toolsRequired.join(', ')}`
-      : 'Direct response, no tools needed',
+    reasoning:
+      toolsRequired.length > 0
+        ? `Message suggests tool usage: ${toolsRequired.join(', ')}`
+        : 'Direct response, no tools needed',
     estimatedSteps: toolsRequired.length > 0 ? toolsRequired.length + 1 : 1,
   }
 }

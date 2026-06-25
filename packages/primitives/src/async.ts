@@ -1,7 +1,4 @@
-export const withTimeout = async <T>(
-  promise: Promise<T>,
-  ms: number,
-): Promise<T> => {
+export const withTimeout = async <T>(promise: Promise<T>, ms: number): Promise<T> => {
   let timer: ReturnType<typeof setTimeout>
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
@@ -30,5 +27,4 @@ export const defer = <T>(): {
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
-export const race = async <T>(promises: readonly Promise<T>[]): Promise<T> =>
-  Promise.race(promises)
+export const race = async <T>(promises: readonly Promise<T>[]): Promise<T> => Promise.race(promises)

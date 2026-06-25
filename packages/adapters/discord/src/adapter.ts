@@ -36,10 +36,7 @@ export const createDiscordAdapter = (config: DiscordConfig): PlatformAdapter => 
 
   const getCapabilities = () => DISCORD_CAPABILITIES
 
-  const resolveUser = async (
-    platformUserId: string,
-    _teamId: string,
-  ): Promise<PlatformUser> => {
+  const resolveUser = async (platformUserId: string, _teamId: string): Promise<PlatformUser> => {
     return withSpan('discord.resolveUser', async (): Promise<PlatformUser> => {
       return fetchDiscordUser(token, apiBase, platformUserId)
     })

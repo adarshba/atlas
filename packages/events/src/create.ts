@@ -1,5 +1,12 @@
 import { EventEmitter } from 'events'
-import type { Event, EventType, EventHandler, EventSubscription, EventMetadata, EventPayloadMap } from '@atlas/types'
+import type {
+  Event,
+  EventType,
+  EventHandler,
+  EventSubscription,
+  EventMetadata,
+  EventPayloadMap,
+} from '@atlas/types'
 import { withSpan, incrementCounter } from '@atlas/otel'
 import { generateId } from '@atlas/primitives'
 import { persistEvent } from './persist'
@@ -42,7 +49,9 @@ export const createEventBus = (options: EventBusOptions): EventBus => {
       Object.freeze(event)
 
       publishedIds.add(event.id)
-      setTimeout(() => { publishedIds.delete(event.id) }, 10000)
+      setTimeout(() => {
+        publishedIds.delete(event.id)
+      }, 10000)
 
       emitter.emit(type, event)
 
@@ -57,10 +66,7 @@ export const createEventBus = (options: EventBusOptions): EventBus => {
     })
   }
 
-  const subscribe = <T extends EventType>(
-    type: T,
-    handler: EventHandler<T>,
-  ): EventSubscription => {
+  const subscribe = <T extends EventType>(type: T, handler: EventHandler<T>): EventSubscription => {
     const listener = (event: Event<T>): void => {
       void handler(event)
     }

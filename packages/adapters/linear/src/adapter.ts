@@ -47,10 +47,7 @@ export const createLinearAdapter = (config: LinearConfig): PlatformAdapter => {
 
   const getCapabilities = () => LINEAR_CAPABILITIES
 
-  const resolveUser = async (
-    platformUserId: string,
-    _teamId: string,
-  ): Promise<PlatformUser> => {
+  const resolveUser = async (platformUserId: string, _teamId: string): Promise<PlatformUser> => {
     return withSpan('linear.resolveUser', async (): Promise<PlatformUser> => {
       const query = `query { user(id: "${platformUserId}") { id name email } }`
       const res = await fetch(apiBase, {

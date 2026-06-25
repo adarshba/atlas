@@ -1,4 +1,10 @@
-import type { PlatformAdapter, InboundMessage, PlatformType, PlatformRef, PlatformUser } from '@atlas/types'
+import type {
+  PlatformAdapter,
+  InboundMessage,
+  PlatformType,
+  PlatformRef,
+  PlatformUser,
+} from '@atlas/types'
 import { generateId } from '@atlas/primitives'
 
 const CLI_CAPABILITIES = {
@@ -49,7 +55,11 @@ export const createCliAdapter = (): PlatformAdapter => {
 
   const updateResponse = async (): Promise<void> => {}
 
-  const startStream = async (): Promise<{ readonly id: string; readonly platformRef: PlatformRef; readonly messageId: string | null }> => {
+  const startStream = async (): Promise<{
+    readonly id: string
+    readonly platformRef: PlatformRef
+    readonly messageId: string | null
+  }> => {
     return { id: generateId(), platformRef, messageId: null }
   }
 

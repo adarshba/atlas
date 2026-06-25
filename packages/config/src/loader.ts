@@ -1,4 +1,14 @@
-import type { AtlasConfig, AiConfig, RedisConfig, PostgresConfig, OtelConfig, GraphitiConfig, SlackConfig, DiscordConfig, LinearConfig } from '@atlas/types'
+import type {
+  AtlasConfig,
+  AiConfig,
+  RedisConfig,
+  PostgresConfig,
+  OtelConfig,
+  GraphitiConfig,
+  SlackConfig,
+  DiscordConfig,
+  LinearConfig,
+} from '@atlas/types'
 import { envSchema, type RawEnv } from './schema'
 
 export type { RawEnv }

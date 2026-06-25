@@ -12,16 +12,19 @@
 BullMQ is a **Redis-based** distributed job queue. It uses Redis as its sole backing store, leveraging Lua scripts and pipelining for atomicity and performance. The architecture is polling-free—workers receive jobs via Redis pub/sub-style mechanisms (BRPOP/streams).
 
 **Key components:**
+
 - **Queue** — holds jobs waiting to be processed
 - **Worker** — processes jobs, supports concurrency settings
 - **QueueEvents** — listens to global events via Redis Streams (durable, not lost on disconnect)
 - **FlowProducer** — manages parent-child job dependencies (DAG-style workflows)
 
 ### Dependencies
+
 - **Redis** (required) — the only infrastructure dependency
 - No database dependency
 
 ### Features
+
 - FIFO and LIFO job ordering
 - Job priorities
 - Delayed jobs
@@ -38,17 +41,21 @@ BullMQ is a **Redis-based** distributed job queue. It uses Redis as its sole bac
 - UI available (BullMQ Pro / Taskforce.sh)
 
 ### TypeScript Support
+
 - **Written natively in TypeScript** (40.4% of codebase)
 - First-class TypeScript types for all APIs
 - Strong type inference for job data, events, and options
 
 ### Event System
+
 BullMQ provides rich event handling:
+
 - `Worker` events: `completed`, `failed`, `progress`, `drained`, `error`
 - `Queue` events: `waiting`, `active`, `removed`, etc.
 - `QueueEvents` class — listens to events across all workers via Redis Streams (durable delivery, not lost on disconnect)
 
 ### Community & Maintenance
+
 - **GitHub Stars:** ~9,000
 - **Forks:** 642
 - **Releases:** 863 (latest: v5.79.1, June 21 2026)
@@ -70,21 +77,25 @@ BullMQ provides rich event handling:
 Graphile Worker is a **PostgreSQL-based** job queue. Jobs are stored in PostgreSQL tables and managed via SQL functions. Workers use `LISTEN`/`NOTIFY` for low-latency job notifications (typically <3ms from schedule to execution) and `SKIP LOCKED` for high-performance job fetching.
 
 **Key components:**
+
 - **Runner** — manages worker pools, connects to PostgreSQL
 - **Task executors** — functions that process jobs by task identifier
 - **WorkerUtils** — utility for adding jobs programmatically
 - **Crontab** — recurring task scheduling
 
 **Modes:**
+
 - **CLI mode** — run as a standalone process (`graphile-worker` CLI)
 - **Library mode** — embed directly in your Node.js app (can run in the same process)
 
 ### Dependencies
+
 - **PostgreSQL** (required) — the only infrastructure dependency
 - Uses `SKIP LOCKED` (requires PostgreSQL 9.5+)
 - Uses `LISTEN`/`NOTIFY` for real-time job notifications
 
 ### Features
+
 - Standalone and embedded modes (run in-process or separate)
 - Low latency (<3ms schedule-to-execution via LISTEN/NOTIFY)
 - High performance (SKIP LOCKED for fast fetches)
@@ -101,6 +112,7 @@ Graphile Worker is a **PostgreSQL-based** job queue. Jobs are stored in PostgreS
 - Can run in the same Node process as your server
 
 ### TypeScript Support
+
 - **Written natively in TypeScript** (64.5% of codebase)
 - Payloads typed as `unknown` by default (safety-first approach)
 - Supports type assertion functions for payload validation
@@ -108,7 +120,9 @@ Graphile Worker is a **PostgreSQL-based** job queue. Jobs are stored in PostgreS
 - `Task<"taskName">` generic for inferring payload types
 
 ### Event System
+
 Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
+
 - `pool:create`, `pool:listen:connecting`, `pool:listen:success`, `pool:listen:error`
 - `pool:release`, `pool:gracefulShutdown`, `pool:gracefulShutdown:error`
 - `worker:create`, `worker:release`, `worker:stop`
@@ -118,6 +132,7 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 - `gracefulShutdown`, `stop`
 
 ### Community & Maintenance
+
 - **GitHub Stars:** ~2,300
 - **Forks:** 119
 - **Commits:** 1,497
@@ -135,70 +150,70 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 
 ### Infrastructure Requirements
 
-| Aspect | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **Required infrastructure** | Redis | PostgreSQL |
-| **Additional dependencies** | None | None |
-| **For your stack (PG + Redis)** | Uses Redis (already have it) | Uses PostgreSQL (already have it) |
-| **Zero new infra needed?** | Yes (Redis already present) | Yes (PostgreSQL already present) |
-| **Can run in-process?** | Workers run in Node.js process | Yes, library mode runs in same process |
+| Aspect                          | BullMQ                         | Graphile Worker                        |
+| ------------------------------- | ------------------------------ | -------------------------------------- |
+| **Required infrastructure**     | Redis                          | PostgreSQL                             |
+| **Additional dependencies**     | None                           | None                                   |
+| **For your stack (PG + Redis)** | Uses Redis (already have it)   | Uses PostgreSQL (already have it)      |
+| **Zero new infra needed?**      | Yes (Redis already present)    | Yes (PostgreSQL already present)       |
+| **Can run in-process?**         | Workers run in Node.js process | Yes, library mode runs in same process |
 
 ### Ease of Use
 
-| Aspect | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **API style** | Queue/Worker/QueueEvents classes | Task functions + Runner |
-| **Adding jobs** | `queue.add('name', data)` | `addJobAdhoc(...)` or `workerUtils.addJob(...)` |
-| **Processing** | `new Worker('queue', async job => {...})` | `run({ taskList: { name: async (payload, helpers) => {...} } })` |
-| **Testing** | Manual setup of Redis + mock | `runTaskListOnce` utility (test-friendly) |
-| **CLI mode** | No (library only) | Yes (standalone CLI or library) |
-| **Learning curve** | Moderate (many concepts: Queue, Worker, QueueEvents, FlowProducer) | Lower (simpler mental model: tasks + runner) |
-| **Configuration** | Redis connection opts | PostgreSQL connection string |
+| Aspect             | BullMQ                                                             | Graphile Worker                                                  |
+| ------------------ | ------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| **API style**      | Queue/Worker/QueueEvents classes                                   | Task functions + Runner                                          |
+| **Adding jobs**    | `queue.add('name', data)`                                          | `addJobAdhoc(...)` or `workerUtils.addJob(...)`                  |
+| **Processing**     | `new Worker('queue', async job => {...})`                          | `run({ taskList: { name: async (payload, helpers) => {...} } })` |
+| **Testing**        | Manual setup of Redis + mock                                       | `runTaskListOnce` utility (test-friendly)                        |
+| **CLI mode**       | No (library only)                                                  | Yes (standalone CLI or library)                                  |
+| **Learning curve** | Moderate (many concepts: Queue, Worker, QueueEvents, FlowProducer) | Lower (simpler mental model: tasks + runner)                     |
+| **Configuration**  | Redis connection opts                                              | PostgreSQL connection string                                     |
 
 ### Reliability
 
-| Aspect | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **Delivery guarantees** | At-least-once (exactly-once in best case) | At-least-once (exactly-once in best case) |
-| **Persistence** | Redis (RDB/AOF) | PostgreSQL (ACID transactions) |
-| **Crash recovery** | Automatic | Automatic (ACID transactional guarantees) |
-| **Job retry** | Configurable retries + backoff | 25 attempts over ~3 days (configurable) |
-| **Atomicity** | Lua scripts | PostgreSQL transactions (stronger guarantees) |
-| **Data consistency** | Redis is eventually consistent by default | PostgreSQL is ACID-compliant (stronger) |
+| Aspect                  | BullMQ                                    | Graphile Worker                               |
+| ----------------------- | ----------------------------------------- | --------------------------------------------- |
+| **Delivery guarantees** | At-least-once (exactly-once in best case) | At-least-once (exactly-once in best case)     |
+| **Persistence**         | Redis (RDB/AOF)                           | PostgreSQL (ACID transactions)                |
+| **Crash recovery**      | Automatic                                 | Automatic (ACID transactional guarantees)     |
+| **Job retry**           | Configurable retries + backoff            | 25 attempts over ~3 days (configurable)       |
+| **Atomicity**           | Lua scripts                               | PostgreSQL transactions (stronger guarantees) |
+| **Data consistency**    | Redis is eventually consistent by default | PostgreSQL is ACID-compliant (stronger)       |
 
 ### Observability
 
-| Aspect | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **Events** | Worker + Queue + QueueEvents (Redis Streams) | WorkerEvents EventEmitter (comprehensive) |
-| **Event durability** | Redis Streams (durable, auto-trimmed) | EventEmitter (in-process, not durable) |
-| **Job inspection** | API methods + BullMQ Pro UI | SQL queries on `graphile_worker.jobs` view |
-| **UI/Dashboard** | BullMQ Pro / Taskforce.sh (paid) | SQL-based (free, use any PG client) |
-| **Metrics** | Via events + BullMQ Pro | Via events + SQL queries |
-| **Logging** | Configurable | Configurable logger (structured) |
+| Aspect               | BullMQ                                       | Graphile Worker                            |
+| -------------------- | -------------------------------------------- | ------------------------------------------ |
+| **Events**           | Worker + Queue + QueueEvents (Redis Streams) | WorkerEvents EventEmitter (comprehensive)  |
+| **Event durability** | Redis Streams (durable, auto-trimmed)        | EventEmitter (in-process, not durable)     |
+| **Job inspection**   | API methods + BullMQ Pro UI                  | SQL queries on `graphile_worker.jobs` view |
+| **UI/Dashboard**     | BullMQ Pro / Taskforce.sh (paid)             | SQL-based (free, use any PG client)        |
+| **Metrics**          | Via events + BullMQ Pro                      | Via events + SQL queries                   |
+| **Logging**          | Configurable                                 | Configurable logger (structured)           |
 
 ### Event-Driven Architecture Fit
 
-| Aspect | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **Event emission** | Redis Streams (cross-process, durable) | EventEmitter (in-process) |
-| **Cross-process events** | Yes (QueueEvents class) | No (events are local to worker process) |
-| **Pub/Sub** | Redis pub/sub built-in | PostgreSQL LISTEN/NOTIFY (internal use) |
-| **Parent-child flows** | FlowProducer (DAG) | No built-in DAG support |
-| **Delayed jobs** | Yes | Yes (via `run_at`) |
-| **Cron scheduling** | Yes (repeatable jobs) | Yes (crontab with backfill) |
-| **Job priorities** | Yes | Yes |
-| **Rate limiting** | Built-in rate limiter | Via runtime controls / external library |
+| Aspect                   | BullMQ                                 | Graphile Worker                         |
+| ------------------------ | -------------------------------------- | --------------------------------------- |
+| **Event emission**       | Redis Streams (cross-process, durable) | EventEmitter (in-process)               |
+| **Cross-process events** | Yes (QueueEvents class)                | No (events are local to worker process) |
+| **Pub/Sub**              | Redis pub/sub built-in                 | PostgreSQL LISTEN/NOTIFY (internal use) |
+| **Parent-child flows**   | FlowProducer (DAG)                     | No built-in DAG support                 |
+| **Delayed jobs**         | Yes                                    | Yes (via `run_at`)                      |
+| **Cron scheduling**      | Yes (repeatable jobs)                  | Yes (crontab with backfill)             |
+| **Job priorities**       | Yes                                    | Yes                                     |
+| **Rate limiting**        | Built-in rate limiter                  | Via runtime controls / external library |
 
 ### Performance
 
-| Aspect | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **Latency** | Very low (in-memory Redis) | <3ms (LISTEN/NOTIFY) |
-| **Throughput** | Very high (Redis in-memory) | High (SKIP LOCKED, minimal serialization) |
-| **Scalability** | Horizontal (add more workers) | Horizontal (add more workers) |
-| **Memory usage** | Redis memory | PostgreSQL shared buffers |
-| **Suitable for high-volume?** | Yes | Yes (designed for performance) |
+| Aspect                        | BullMQ                        | Graphile Worker                           |
+| ----------------------------- | ----------------------------- | ----------------------------------------- |
+| **Latency**                   | Very low (in-memory Redis)    | <3ms (LISTEN/NOTIFY)                      |
+| **Throughput**                | Very high (Redis in-memory)   | High (SKIP LOCKED, minimal serialization) |
+| **Scalability**               | Horizontal (add more workers) | Horizontal (add more workers)             |
+| **Memory usage**              | Redis memory                  | PostgreSQL shared buffers                 |
+| **Suitable for high-volume?** | Yes                           | Yes (designed for performance)            |
 
 ---
 
@@ -210,6 +225,7 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 - **Graphile Worker** requires only PostgreSQL. If you already have PostgreSQL, there's zero new infrastructure.
 
 **For your system (PostgreSQL + Redis already present):**
+
 - Both require **zero additional infrastructure**
 - Graphile Worker can run in the same process as your server (leanest option)
 - BullMQ workers can also run in-process but typically run as separate processes
@@ -223,6 +239,7 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 **For an event-driven AI teammate system with memory updates, tool execution, and async responses:**
 
 ### BullMQ Strengths for Event-Driven:
+
 - **Durable cross-process events** via Redis Streams (QueueEvents class)
 - **Parent-child job flows** (FlowProducer) — perfect for multi-step AI pipelines
   - e.g., "process message" → "update memory" + "execute tool" + "generate response"
@@ -232,6 +249,7 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 - **Delayed/scheduled jobs** — for delayed responses, polling patterns
 
 ### Graphile Worker Strengths for Event-Driven:
+
 - **PostgreSQL triggers** — jobs can be created directly from database events
   - e.g., a trigger on `messages` table auto-creates a "process_message" job
 - **LISTEN/NOTIFY** — ultra-low-latency job dispatch (<3ms)
@@ -241,12 +259,14 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 - **Job deduplication** — prevent duplicate work via `job_key`
 
 ### For AI teammate system specifically:
+
 - **Memory updates**: Graphile Worker shines here — database triggers can auto-enqueue memory update jobs when data changes. BullMQ would require application-level hooks.
 - **Tool execution**: Both handle this well. BullMQ's parent-child flows are better for multi-step tool pipelines.
 - **Async responses**: BullMQ's QueueEvents (durable Redis Streams) is better for notifying the API layer when async work completes across processes.
 - **Rate limiting**: BullMQ has built-in rate limiting (important for AI API calls). Graphile Worker needs external setup.
 
 **Winner for event-driven: Tie — depends on the specific pattern**
+
 - Choose **BullMQ** if you need durable cross-process events, parent-child job flows, and built-in rate limiting
 - Choose **Graphile Worker** if you want database-trigger-driven job creation and SQL-native job queries
 
@@ -254,18 +274,18 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 
 ## 6. Community & Maintenance
 
-| Metric | BullMQ | Graphile Worker |
-|--------|--------|-----------------|
-| **GitHub Stars** | ~9,000 | ~2,300 |
-| **Forks** | 642 | 119 |
-| **Total Releases** | 863 | 65 tags |
-| **Open Issues** | 272 | 37 |
-| **Latest activity** | Very active (frequent releases) | Active (less frequent) |
-| **Funding model** | Commercial (BullMQ Pro + Taskforce.sh) | Community sponsorship (Patreon/GitHub Sponsors) |
-| **Backing company** | Taskforce.sh, Inc. | Graphile Ltd. (smaller) |
-| **Multi-language** | Node.js, Python, Rust, Elixir, PHP | Node.js only |
-| **Version** | 5.x (stable) | 0.x (pre-1.0, breaking changes possible) |
-| **Documentation** | Comprehensive (GitBook) | Comprehensive (Docusaurus) |
+| Metric              | BullMQ                                 | Graphile Worker                                 |
+| ------------------- | -------------------------------------- | ----------------------------------------------- |
+| **GitHub Stars**    | ~9,000                                 | ~2,300                                          |
+| **Forks**           | 642                                    | 119                                             |
+| **Total Releases**  | 863                                    | 65 tags                                         |
+| **Open Issues**     | 272                                    | 37                                              |
+| **Latest activity** | Very active (frequent releases)        | Active (less frequent)                          |
+| **Funding model**   | Commercial (BullMQ Pro + Taskforce.sh) | Community sponsorship (Patreon/GitHub Sponsors) |
+| **Backing company** | Taskforce.sh, Inc.                     | Graphile Ltd. (smaller)                         |
+| **Multi-language**  | Node.js, Python, Rust, Elixir, PHP     | Node.js only                                    |
+| **Version**         | 5.x (stable)                           | 0.x (pre-1.0, breaking changes possible)        |
+| **Documentation**   | Comprehensive (GitBook)                | Comprehensive (Docusaurus)                      |
 
 **Winner: BullMQ** — larger community, more frequent releases, commercial backing, stable 5.x versioning. Graphile Worker is production-ready but still at 0.x, meaning minor version bumps may require code changes.
 
@@ -273,19 +293,19 @@ Graphile Worker has a comprehensive `WorkerEvents` EventEmitter:
 
 ## 7. Summary Scoring
 
-| Criterion | BullMQ | Graphile Worker |
-|-----------|--------|-----------------|
-| Free & open source | 10/10 (MIT) | 10/10 (MIT) |
-| Minimal infrastructure | 9/10 (Redis only) | 10/10 (PG only, in-process) |
-| Works with PG + Redis | 10/10 (uses Redis) | 10/10 (uses PG) |
-| Event-driven architecture | 9/10 (durable streams, flows) | 8/10 (triggers, LISTEN/NOTIFY) |
-| TypeScript support | 10/10 (native TS) | 10/10 (native TS, safety-first) |
-| Reliability | 9/10 (Redis persistence) | 10/10 (ACID transactions) |
-| Observability | 8/10 (events + paid UI) | 8/10 (events + SQL queries) |
-| Community/maintenance | 9/10 (9k stars, commercial) | 7/10 (2.3k stars, community-funded) |
-| Ease of use | 8/10 | 9/10 (simpler mental model) |
-| Performance | 10/10 (in-memory) | 9/10 (sub-3ms) |
-| **Total** | **83/100** | **81/100** |
+| Criterion                 | BullMQ                        | Graphile Worker                     |
+| ------------------------- | ----------------------------- | ----------------------------------- |
+| Free & open source        | 10/10 (MIT)                   | 10/10 (MIT)                         |
+| Minimal infrastructure    | 9/10 (Redis only)             | 10/10 (PG only, in-process)         |
+| Works with PG + Redis     | 10/10 (uses Redis)            | 10/10 (uses PG)                     |
+| Event-driven architecture | 9/10 (durable streams, flows) | 8/10 (triggers, LISTEN/NOTIFY)      |
+| TypeScript support        | 10/10 (native TS)             | 10/10 (native TS, safety-first)     |
+| Reliability               | 9/10 (Redis persistence)      | 10/10 (ACID transactions)           |
+| Observability             | 8/10 (events + paid UI)       | 8/10 (events + SQL queries)         |
+| Community/maintenance     | 9/10 (9k stars, commercial)   | 7/10 (2.3k stars, community-funded) |
+| Ease of use               | 8/10                          | 9/10 (simpler mental model)         |
+| Performance               | 10/10 (in-memory)             | 9/10 (sub-3ms)                      |
+| **Total**                 | **83/100**                    | **81/100**                          |
 
 ---
 

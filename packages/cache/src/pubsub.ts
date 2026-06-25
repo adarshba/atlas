@@ -12,7 +12,11 @@ export const publish = async (redis: Redis, channel: string, message: string): P
   })
 }
 
-export const subscribe = async (redis: Redis, channel: string, handler: MessageHandler): Promise<Unsubscribe> => {
+export const subscribe = async (
+  redis: Redis,
+  channel: string,
+  handler: MessageHandler,
+): Promise<Unsubscribe> => {
   return withSpan('cache.subscribe', async (span) => {
     span.setAttribute('cache.channel', channel)
     await redis.subscribe(channel)

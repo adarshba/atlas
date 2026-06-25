@@ -15,17 +15,20 @@ export const generateResponse = async (
     span.setAttribute('session.id', observation.sessionId)
     const { aiProvider, model } = getRuntimeServices()
 
-    const factsBlock = context.relevantFacts.length > 0
-      ? `\n\nRelevant facts:\n${context.relevantFacts.map((f) => `- ${f}`).join('\n')}`
-      : ''
+    const factsBlock =
+      context.relevantFacts.length > 0
+        ? `\n\nRelevant facts:\n${context.relevantFacts.map((f) => `- ${f}`).join('\n')}`
+        : ''
 
-    const historyBlock = context.recentMessages.length > 0
-      ? `\n\nRecent conversation:\n${context.recentMessages.join('\n')}`
-      : ''
+    const historyBlock =
+      context.recentMessages.length > 0
+        ? `\n\nRecent conversation:\n${context.recentMessages.join('\n')}`
+        : ''
 
-    const toolBlock = toolResults.length > 0
-      ? `\n\nTool results:\n${toolResults.map((r) => `- ${JSON.stringify(r.output)}`).join('\n')}`
-      : ''
+    const toolBlock =
+      toolResults.length > 0
+        ? `\n\nTool results:\n${toolResults.map((r) => `- ${JSON.stringify(r.output)}`).join('\n')}`
+        : ''
 
     const prompt = `User message: ${observation.messageText}${factsBlock}${historyBlock}${toolBlock}`
 

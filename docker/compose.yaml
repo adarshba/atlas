@@ -6,11 +6,11 @@ services:
       POSTGRES_PASSWORD: atlas
       POSTGRES_DB: atlas
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U atlas"]
+      test: ['CMD-SHELL', 'pg_isready -U atlas']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -18,11 +18,11 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,14 +30,14 @@ services:
   falkordb:
     image: falkordb/falkordb:latest
     ports:
-      - "6380:6379"
+      - '6380:6379'
     volumes:
       - falkordb_data:/data
 
   graphiti:
     image: zepai/graphiti:latest
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       - OPENAI_API_KEY=${ATLAS_AI_API_KEY:-sk-placeholder}
       - FALKORDB_URI=redis://falkordb:6379
@@ -47,10 +47,10 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     ports:
-      - "4318:4318"
+      - '4318:4318'
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
-    command: ["--config=/etc/otelcol/config.yaml"]
+    command: ['--config=/etc/otelcol/config.yaml']
 
 volumes:
   postgres_data:

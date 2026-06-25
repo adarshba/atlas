@@ -5,7 +5,12 @@ import { withSpan } from '@atlas/otel'
 import { get as cacheGet, set as cacheSet } from '@atlas/cache'
 
 export type SessionStore = {
-  readonly create: (platform: string, platformRef: PlatformRef, userId: string, id?: string) => Promise<Session>
+  readonly create: (
+    platform: string,
+    platformRef: PlatformRef,
+    userId: string,
+    id?: string,
+  ) => Promise<Session>
   readonly get: (id: string) => Promise<Session | null>
   readonly update: (id: string, patch: Partial<Session>) => Promise<Session | null>
   readonly touch: (id: string) => Promise<void>

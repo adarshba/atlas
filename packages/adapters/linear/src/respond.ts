@@ -11,12 +11,18 @@ const ATLAS_DISPLAY_NAME = 'Atlas'
 const ATLAS_DISPLAY_ICON_URL =
   'https://ui-avatars.com/api/?name=Atlas&background=5e6ad2&color=fff&bold=true&size=128'
 
-const buildCreateMutation = (issueId: string, body: string, useOAuth: boolean): string => {
+const buildCreateMutation = (
+  issueId: string,
+  body: string,
+  useOAuth: boolean,
+  parentCommentId: string | null,
+): string => {
   const baseInput = `issueId: "${issueId}", body: ${JSON.stringify(body)}`
+  const parentField = parentCommentId ? `, parentId: "${parentCommentId}"` : ''
   const oauthFields = useOAuth
     ? `, createAsUser: ${JSON.stringify(ATLAS_DISPLAY_NAME)}, displayIconUrl: ${JSON.stringify(ATLAS_DISPLAY_ICON_URL)}`
     : ''
-  return `mutation { commentCreate(input: { ${baseInput}${oauthFields} }) { success comment { id } } }`
+  return `mutation { commentCreate(input: { ${baseInput}${parentField}${oauthFields} }) { success comment { id } } }`
 }
 
 export const createSendResponse = (
@@ -31,13 +37,12 @@ export const createSendResponse = (
       const token = await getAuthToken()
       const useOAuth = await isOAuth()
       const issueId = envelope.threadId ?? ctx.channel
-      const mutation = buildCreateMutation(issueId, envelope.text, useOAuth)
+      const mutation = buildCreateMutation(issueId, envelope.text, useOAuth, envelope.parentCommentId)
       const res = await fetch(apiBase, {
         method: 'POST',
         headers: {
           Authorization: token,
           'Content-Type': 'application/json',
-          ...(useOAuth ? { 'Linear-Actor': 'app' } : {}),
         },
         body: JSON.stringify({ query: mutation }),
       })

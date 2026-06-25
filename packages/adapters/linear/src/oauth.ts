@@ -10,6 +10,7 @@ export const buildAuthorizeUrl = (config: LinearOAuthConfig, state: string): str
     response_type: 'code',
     state,
     scope: 'read,write',
+    actor: 'app',
   })
   return `https://linear.app/oauth/authorize?${params.toString()}`
 }

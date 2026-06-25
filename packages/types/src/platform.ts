@@ -49,6 +49,7 @@ export type ResponseEnvelope = {
   readonly text: string
   readonly blocks: readonly ResponseBlock[] | null
   readonly threadId: string | null
+  readonly parentCommentId: string | null
 }
 
 export type ResponseBlock = {

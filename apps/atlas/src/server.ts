@@ -26,6 +26,7 @@ export const createServer = (options: ServerOptions<Runtime>) => {
         if (!result.ok) return result.response
 
         const channelId = result.message.platformRef.channelId
+        const parentCommentId = result.message.platformRef.messageTs
         void options.runtime
           .handleMessage(result.message)
           .then(async (response) => {
@@ -33,6 +34,7 @@ export const createServer = (options: ServerOptions<Runtime>) => {
               text: response,
               blocks: null,
               threadId: channelId,
+              parentCommentId,
             })
           })
           .catch((err: unknown) => {

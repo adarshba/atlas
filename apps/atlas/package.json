@@ -1,5 +1,5 @@
 {
-  "name": "@atlas/local-dev",
+  "name": "@atlas/atlas",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -18,6 +18,7 @@
     "@atlas/tools": "workspace:*",
     "@atlas/jobs": "workspace:*",
     "@atlas/core": "workspace:*",
-    "@atlas/primitives": "workspace:*"
+    "@atlas/primitives": "workspace:*",
+    "@atlas/linear": "workspace:*"
   }
 }

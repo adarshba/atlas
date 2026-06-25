@@ -13,25 +13,16 @@ import {
   createReminderTool,
 } from '@atlas/tools'
 import { createRuntime, type RuntimeServices } from '@atlas/core'
+import type { WebhookRoute } from '@atlas/types'
+import {
+  createLinearAdapter,
+  createWebhookHandler as createLinearWebhookHandler,
+} from '@atlas/linear'
 import { printConfig } from './banner'
-import { createCliAdapter } from './cli-adapter'
+import { createServer } from './server'
 
 const SIGNALS = ['SIGINT', 'SIGTERM'] as const
 const MIGRATIONS_DIR = join(import.meta.dir, '../../../packages/db/migrations')
-
-const prompt = (): void => {
-  process.stdout.write('you> ')
-}
-
-const readLine = (): Promise<string> => {
-  return new Promise((resolve) => {
-    process.stdin.resume()
-    process.stdin.once('data', (data) => {
-      process.stdin.pause()
-      resolve(data.toString().trim())
-    })
-  })
-}
 
 const checkHealth = async (name: string, check: () => Promise<boolean>): Promise<boolean> => {
   const ok = await check()
@@ -98,13 +89,49 @@ const start = async (): Promise<void> => {
   }
 
   const runtime = createRuntime(services)
-  const adapter = createCliAdapter()
+
+  const linearAdapter = config.linear.apiKey
+    ? createLinearAdapter({
+        apiKey: config.linear.apiKey,
+        webhookSecret: config.linear.webhookSecret,
+      })
+    : undefined
+  const webhooks: readonly WebhookRoute[] = [
+    ...(linearAdapter !== undefined
+      ? [
+          {
+            path: '/webhooks/linear',
+            platform: linearAdapter.platform,
+            adapter: linearAdapter,
+            handler: createLinearWebhookHandler(config.linear, linearAdapter),
+          },
+        ]
+      : []),
+  ]
+
+  const server = createServer({
+    port: config.server.port,
+    runtime,
+    webhooks,
+  })
+
+  console.log(`\nHTTP server listening on port ${config.server.port}`)
+  for (const webhook of webhooks) {
+    console.log(`  POST ${webhook.path}  — ${webhook.platform} webhook endpoint`)
+  }
+  console.log('  GET  /health           — Health check')
+  if (linearAdapter) {
+    console.log('  Linear adapter: configured')
+  } else {
+    console.log('  Linear adapter: not configured (set ATLAS_LINEAR_API_KEY)')
+  }
 
   let shuttingDown = false
   const shutdown = async (): Promise<void> => {
     if (shuttingDown) return
     shuttingDown = true
     console.log('\nShutting down...')
+    server.stop()
     await eventBus.close()
     await redis.quit()
     await sql.end()
@@ -119,32 +146,7 @@ const start = async (): Promise<void> => {
     })
   }
 
-  console.log('\nRuntime initialized. Type a message and press Enter. Ctrl+C to exit.\n')
-  process.stdin.setEncoding('utf-8')
-  prompt()
-
-  while (true) {
-    const input = await readLine()
-    if (!input) {
-      prompt()
-      continue
-    }
-    if (input === 'exit' || input === 'quit') {
-      break
-    }
-
-    try {
-      const message = await adapter.normalizeInbound(input)
-      const response = await runtime.handleMessage(message)
-      await adapter.sendResponse({ text: response, blocks: null, threadId: null })
-    } catch (error) {
-      console.error('Error:', error instanceof Error ? error.message : String(error))
-    }
-
-    prompt()
-  }
-
-  await shutdown()
+  console.log('\nRuntime initialized. Press Ctrl+C to stop.\n')
 }
 
 start().catch((error) => {

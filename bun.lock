@@ -14,8 +14,8 @@
         "typescript-eslint": "^8.0.0",
       },
     },
-    "apps/local-dev": {
-      "name": "@atlas/local-dev",
+    "apps/atlas": {
+      "name": "@atlas/atlas",
       "version": "0.0.1",
       "dependencies": {
         "@atlas/ai": "workspace:*",
@@ -25,6 +25,7 @@
         "@atlas/db": "workspace:*",
         "@atlas/events": "workspace:*",
         "@atlas/jobs": "workspace:*",
+        "@atlas/linear": "workspace:*",
         "@atlas/memory": "workspace:*",
         "@atlas/otel": "workspace:*",
         "@atlas/primitives": "workspace:*",
@@ -196,6 +197,8 @@
 
     "@atlas/ai": ["@atlas/ai@workspace:packages/ai"],
 
+    "@atlas/atlas": ["@atlas/atlas@workspace:apps/atlas"],
+
     "@atlas/cache": ["@atlas/cache@workspace:packages/cache"],
 
     "@atlas/config": ["@atlas/config@workspace:packages/config"],
@@ -211,8 +214,6 @@
     "@atlas/jobs": ["@atlas/jobs@workspace:packages/jobs"],
 
     "@atlas/linear": ["@atlas/linear@workspace:packages/adapters/linear"],
-
-    "@atlas/local-dev": ["@atlas/local-dev@workspace:apps/local-dev"],
 
     "@atlas/memory": ["@atlas/memory@workspace:packages/memory"],
 

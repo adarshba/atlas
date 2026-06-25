@@ -5,6 +5,7 @@ import type {
   PostgresConfig,
   OtelConfig,
   GraphitiConfig,
+  ServerConfig,
   SlackConfig,
   DiscordConfig,
   LinearConfig,
@@ -43,10 +44,13 @@ export const loadConfig = (): AtlasConfig => {
     baseURL: parsed.ATLAS_GRAPHITI_BASE_URL,
   }
 
+  const server: ServerConfig = {
+    port: parsed.ATLAS_PORT,
+  }
+
   const slack: SlackConfig = {
     botToken: parsed.ATLAS_SLACK_BOT_TOKEN ?? '',
     signingSecret: parsed.ATLAS_SLACK_SIGNING_SECRET ?? '',
-    port: parsed.ATLAS_SLACK_PORT,
   }
 
   const discord: DiscordConfig = {
@@ -59,5 +63,5 @@ export const loadConfig = (): AtlasConfig => {
     webhookSecret: parsed.ATLAS_LINEAR_WEBHOOK_SECRET ?? '',
   }
 
-  return { ai, redis, postgres, otel, graphiti, slack, discord, linear }
+  return { ai, redis, postgres, otel, graphiti, server, slack, discord, linear }
 }

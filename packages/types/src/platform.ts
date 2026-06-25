@@ -68,6 +68,25 @@ export type StatusUpdate = {
   readonly text: string | null
 }
 
+export type WebhookHandlerResult =
+  | {
+      readonly ok: true
+      readonly message: InboundMessage
+    }
+  | {
+      readonly ok: false
+      readonly response: Response
+    }
+
+export type WebhookHandler = (request: Request) => Promise<WebhookHandlerResult>
+
+export type WebhookRoute = {
+  readonly path: string
+  readonly platform: PlatformType
+  readonly adapter: PlatformAdapter
+  readonly handler: WebhookHandler
+}
+
 export type PlatformAdapter = {
   readonly platform: PlatformType
   normalizeInbound: (rawEvent: unknown) => Promise<InboundMessage>

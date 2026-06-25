@@ -10,7 +10,7 @@
     ]
   },
   "scripts": {
-    "dev": "bun run --watch apps/local-dev/src/index.ts",
+    "dev": "bun run --watch apps/atlas/src/index.ts",
     "build": "bun run scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",

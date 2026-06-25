@@ -27,10 +27,13 @@ const graphitiSchema = z.object({
   ATLAS_GRAPHITI_BASE_URL: z.string().url().default('http://localhost:8000'),
 })
 
+const serverSchema = z.object({
+  ATLAS_PORT: z.coerce.number().min(1).max(65535).default(3000),
+})
+
 const slackSchema = z.object({
   ATLAS_SLACK_BOT_TOKEN: z.string().optional(),
   ATLAS_SLACK_SIGNING_SECRET: z.string().optional(),
-  ATLAS_SLACK_PORT: z.coerce.number().default(3000),
 })
 
 const discordSchema = z.object({
@@ -49,6 +52,7 @@ export const envSchema = z.object({
   ...postgresSchema.shape,
   ...otelSchema.shape,
   ...graphitiSchema.shape,
+  ...serverSchema.shape,
   ...slackSchema.shape,
   ...discordSchema.shape,
   ...linearSchema.shape,

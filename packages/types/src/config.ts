@@ -28,7 +28,6 @@ export type GraphitiConfig = {
 export type SlackConfig = {
   readonly botToken: string
   readonly signingSecret: string
-  readonly port: number
 }
 
 export type DiscordConfig = {
@@ -41,12 +40,17 @@ export type LinearConfig = {
   readonly webhookSecret: string
 }
 
+export type ServerConfig = {
+  readonly port: number
+}
+
 export type AtlasConfig = {
   readonly ai: AiConfig
   readonly redis: RedisConfig
   readonly postgres: PostgresConfig
   readonly otel: OtelConfig
   readonly graphiti: GraphitiConfig
+  readonly server: ServerConfig
   readonly slack: SlackConfig
   readonly discord: DiscordConfig
   readonly linear: LinearConfig

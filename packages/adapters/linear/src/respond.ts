@@ -1,33 +1,41 @@
-import type { ResponseEnvelope } from '@atlas/types'
+import type {
+  ResponseEnvelope,
+  AuthTokenProvider,
+  OAuthChecker,
+  AdapterContext,
+  LinearGraphQLResponse,
+} from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 
-type AdapterContext = {
-  channel: string
-  threadId: string | null
+const ATLAS_DISPLAY_NAME = 'Atlas'
+const ATLAS_DISPLAY_ICON_URL =
+  'https://ui-avatars.com/api/?name=Atlas&background=5e6ad2&color=fff&bold=true&size=128'
+
+const buildCreateMutation = (issueId: string, body: string, useOAuth: boolean): string => {
+  const baseInput = `issueId: "${issueId}", body: ${JSON.stringify(body)}`
+  const oauthFields = useOAuth
+    ? `, createAsUser: ${JSON.stringify(ATLAS_DISPLAY_NAME)}, displayIconUrl: ${JSON.stringify(ATLAS_DISPLAY_ICON_URL)}`
+    : ''
+  return `mutation { commentCreate(input: { ${baseInput}${oauthFields} }) { success comment { id } } }`
 }
 
-type LinearGraphQLResponse = {
-  readonly data?: {
-    readonly commentCreate?: {
-      readonly success: boolean
-      readonly comment?: { readonly id: string }
-    }
-    readonly commentUpdate?: {
-      readonly success: boolean
-    }
-  }
-  readonly errors?: readonly { readonly message: string }[]
-}
-
-export const createSendResponse = (apiKey: string, apiBase: string, ctx: AdapterContext) => {
+export const createSendResponse = (
+  getAuthToken: AuthTokenProvider,
+  isOAuth: OAuthChecker,
+  apiBase: string,
+  ctx: AdapterContext,
+  sentCommentIds: Set<string>,
+) => {
   return async (envelope: ResponseEnvelope): Promise<string> => {
     return withSpan('linear.sendResponse', async () => {
+      const token = await getAuthToken()
+      const useOAuth = await isOAuth()
       const issueId = envelope.threadId ?? ctx.channel
-      const mutation = `mutation { commentCreate(input: { issueId: "${issueId}", body: ${JSON.stringify(envelope.text)} }) { success comment { id } } }`
+      const mutation = buildCreateMutation(issueId, envelope.text, useOAuth)
       const res = await fetch(apiBase, {
         method: 'POST',
         headers: {
-          Authorization: apiKey,
+          Authorization: token,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query: mutation }),
@@ -40,19 +48,25 @@ export const createSendResponse = (apiKey: string, apiBase: string, ctx: Adapter
       if (!commentId) {
         throw new Error('Linear sendResponse: no comment id returned')
       }
+      sentCommentIds.add(commentId)
       return commentId
     })
   }
 }
 
-export const createUpdateResponse = (apiKey: string, apiBase: string, _ctx: AdapterContext) => {
+export const createUpdateResponse = (
+  getAuthToken: AuthTokenProvider,
+  apiBase: string,
+  _ctx: AdapterContext,
+) => {
   return async (messageId: string, envelope: ResponseEnvelope): Promise<void> => {
     return withSpan('linear.updateResponse', async () => {
+      const token = await getAuthToken()
       const mutation = `mutation { commentUpdate(input: { id: "${messageId}", body: ${JSON.stringify(envelope.text)} }) { success } }`
       const res = await fetch(apiBase, {
         method: 'POST',
         headers: {
-          Authorization: apiKey,
+          Authorization: token,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query: mutation }),

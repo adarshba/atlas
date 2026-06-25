@@ -39,6 +39,11 @@ export const persistMemory = async (
     await addMessages(memory, {
       groupId: sessionId,
       messages,
+    }).catch((err: unknown) => {
+      console.error(
+        'persistMemory: addMessages failed, continuing:',
+        err instanceof Error ? err.message : String(err),
+      )
     })
   })
 }

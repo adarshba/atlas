@@ -1,45 +1,17 @@
-import type { InboundMessage, InboundFile, PlatformRef, PlatformUser } from '@atlas/types'
+import type {
+  InboundMessage,
+  InboundFile,
+  PlatformRef,
+  PlatformUser,
+  AdapterContext,
+  DiscordAuthor,
+  DiscordAttachment,
+  DiscordMessageData,
+  DiscordEventPayload,
+  DiscordUserResponse,
+} from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 import { generateId } from '@atlas/primitives'
-
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type DiscordAuthor = {
-  readonly id: string
-  readonly username: string
-  readonly global_name?: string
-}
-
-type DiscordAttachment = {
-  readonly id: string
-  readonly filename: string
-  readonly content_type?: string
-  readonly size: number
-  readonly url: string
-}
-
-type DiscordMessageData = {
-  readonly id?: string
-  readonly channel_id?: string
-  readonly content?: string
-  readonly author?: DiscordAuthor
-  readonly attachments?: readonly DiscordAttachment[]
-  readonly thread?: { readonly id: string }
-}
-
-type DiscordEventPayload = {
-  readonly type?: string
-  readonly data?: DiscordMessageData
-}
-
-type DiscordUserResponse = {
-  readonly id: string
-  readonly username: string
-  readonly global_name?: string
-}
 
 export const createNormalizeInbound = (ctx: AdapterContext) => {
   return async (rawEvent: unknown): Promise<InboundMessage> => {
@@ -54,7 +26,7 @@ export const createNormalizeInbound = (ctx: AdapterContext) => {
       ctx.channel = channel
       ctx.threadId = threadId
 
-      const author = event.author
+      const author: DiscordAuthor | undefined = event.author
       const user: PlatformUser = author
         ? {
             id: author.id,
@@ -71,13 +43,15 @@ export const createNormalizeInbound = (ctx: AdapterContext) => {
             email: null,
           }
 
-      const files: readonly InboundFile[] = (event.attachments ?? []).map((a) => ({
-        id: a.id,
-        filename: a.filename,
-        mimeType: a.content_type ?? 'application/octet-stream',
-        size: a.size,
-        downloadUrl: a.url,
-      }))
+      const files: readonly InboundFile[] = (event.attachments ?? []).map(
+        (a: DiscordAttachment) => ({
+          id: a.id,
+          filename: a.filename,
+          mimeType: a.content_type ?? 'application/octet-stream',
+          size: a.size,
+          downloadUrl: a.url,
+        }),
+      )
 
       const platformRef: PlatformRef = {
         platform: 'discord',

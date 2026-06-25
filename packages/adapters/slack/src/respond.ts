@@ -1,16 +1,5 @@
-import type { ResponseEnvelope } from '@atlas/types'
+import type { ResponseEnvelope, AdapterContext, SlackApiResponse } from '@atlas/types'
 import { withSpan } from '@atlas/otel'
-
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type SlackApiResponse = {
-  readonly ok: boolean
-  readonly ts?: string
-  readonly error?: string
-}
 
 export const createSendResponse = (token: string, apiBase: string, ctx: AdapterContext) => {
   return async (envelope: ResponseEnvelope): Promise<string> => {

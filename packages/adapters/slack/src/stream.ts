@@ -1,17 +1,12 @@
-import type { PlatformRef, ResponseEnvelope, StreamHandle } from '@atlas/types'
+import type {
+  PlatformRef,
+  ResponseEnvelope,
+  StreamHandle,
+  AdapterContext,
+  SlackApiResponse,
+} from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 import { generateId } from '@atlas/primitives'
-
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type SlackApiResponse = {
-  readonly ok: boolean
-  readonly ts?: string
-  readonly error?: string
-}
 
 const postMessage = async (
   token: string,

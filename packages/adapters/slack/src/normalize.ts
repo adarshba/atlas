@@ -1,47 +1,16 @@
-import type { InboundMessage, InboundFile, PlatformRef, PlatformUser } from '@atlas/types'
+import type {
+  InboundMessage,
+  InboundFile,
+  PlatformRef,
+  PlatformUser,
+  AdapterContext,
+  SlackFile,
+  SlackMessageEvent,
+  SlackEventPayload,
+  SlackUserResponse,
+} from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 import { generateId } from '@atlas/primitives'
-
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type SlackFile = {
-  readonly id: string
-  readonly name: string
-  readonly mimetype: string
-  readonly size: number
-  readonly url_private?: string
-}
-
-type SlackMessageEvent = {
-  readonly type?: string
-  readonly user?: string
-  readonly text?: string
-  readonly channel?: string
-  readonly ts?: string
-  readonly thread_ts?: string
-  readonly files?: readonly SlackFile[]
-}
-
-type SlackEventPayload = {
-  readonly type?: string
-  readonly event?: SlackMessageEvent
-  readonly team_id?: string
-}
-
-type SlackUserResponse = {
-  readonly ok: boolean
-  readonly user?: {
-    readonly id: string
-    readonly name: string
-    readonly profile?: {
-      readonly real_name?: string
-      readonly email?: string
-    }
-  }
-}
 
 const fetchSlackUser = async (
   token: string,
@@ -100,7 +69,7 @@ export const createNormalizeInbound = (token: string, apiBase: string, ctx: Adap
             email: null,
           }
 
-      const files: readonly InboundFile[] = (event.files ?? []).map((f) => ({
+      const files: readonly InboundFile[] = (event.files ?? []).map((f: SlackFile) => ({
         id: f.id,
         filename: f.name,
         mimeType: f.mimetype,

@@ -6,6 +6,7 @@ import type {
   MemorySearchResult,
   Episode,
   MemoryFact,
+  MemoryMessage,
 } from '@atlas/types'
 
 export type GraphitiClient = {
@@ -20,11 +21,24 @@ export type GraphitiClient = {
 export const createGraphitiClient = (config: GraphitiConfig): GraphitiClient => {
   const baseURL = config.baseURL
 
+  const toApiMessage = (msg: MemoryMessage) => ({
+    content: msg.content,
+    ...(msg.uuid !== '' ? { uuid: msg.uuid } : { uuid: null }),
+    name: msg.name,
+    role_type: msg.roleType,
+    role: msg.role,
+    timestamp: msg.timestamp,
+    source_description: msg.sourceDescription ?? '',
+  })
+
   const addMessages = async (request: AddMessagesRequest): Promise<void> => {
     const res = await fetch(`${baseURL}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
+      body: JSON.stringify({
+        group_id: request.groupId,
+        messages: request.messages.map(toApiMessage),
+      }),
     })
     if (!res.ok) throw new Error(`Graphiti addMessages failed: ${res.status}`)
   }
@@ -45,13 +59,14 @@ export const createGraphitiClient = (config: GraphitiConfig): GraphitiClient => 
   }
 
   const getMemory = async (request: GetMemoryRequest): Promise<MemorySearchResult> => {
-    const res = await fetch(`${baseURL}/memory`, {
+    const res = await fetch(`${baseURL}/get-memory`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         group_id: request.groupId,
-        messages: request.messages,
+        messages: request.messages.map(toApiMessage),
         max_facts: request.maxFacts,
+        center_node_uuid: null,
       }),
     })
     if (!res.ok) throw new Error(`Graphiti getMemory failed: ${res.status}`)
@@ -60,11 +75,7 @@ export const createGraphitiClient = (config: GraphitiConfig): GraphitiClient => 
   }
 
   const getEpisodes = async (groupId: string, lastN: number): Promise<readonly Episode[]> => {
-    const params = new URLSearchParams({
-      group_id: groupId,
-      last_n: String(lastN),
-    })
-    const res = await fetch(`${baseURL}/episodes?${params}`)
+    const res = await fetch(`${baseURL}/episodes/${groupId}?last_n=${lastN}`)
     if (!res.ok) throw new Error(`Graphiti getEpisodes failed: ${res.status}`)
     return (await res.json()) as readonly Episode[]
   }

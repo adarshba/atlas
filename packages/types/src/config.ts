@@ -38,6 +38,9 @@ export type DiscordConfig = {
 export type LinearConfig = {
   readonly apiKey: string
   readonly webhookSecret: string
+  readonly oauthClientId: string
+  readonly oauthClientSecret: string
+  readonly oauthRedirectUri: string
 }
 
 export type ServerConfig = {

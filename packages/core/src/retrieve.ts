@@ -16,8 +16,20 @@ export const retrieveContext = async (
         query: messageText,
         groupIds: [sessionId],
         maxFacts: 10,
+      }).catch((err: unknown) => {
+        console.error(
+          'retrieveContext: search failed, continuing with empty:',
+          err instanceof Error ? err.message : String(err),
+        )
+        return { facts: [], query: messageText }
       }),
-      getEpisodes(memory, sessionId, 10),
+      getEpisodes(memory, sessionId, 10).catch((err: unknown) => {
+        console.error(
+          'retrieveContext: getEpisodes failed, continuing with empty:',
+          err instanceof Error ? err.message : String(err),
+        )
+        return [] as const
+      }),
     ])
 
     return {

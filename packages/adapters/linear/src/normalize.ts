@@ -1,55 +1,28 @@
-import type { InboundMessage, PlatformRef, PlatformUser } from '@atlas/types'
+import type {
+  InboundMessage,
+  PlatformRef,
+  PlatformUser,
+  AuthTokenProvider,
+  AdapterContext,
+  LinearUserResponse,
+  LinearWebhookData,
+  LinearWebhookEvent,
+} from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 import { generateId } from '@atlas/primitives'
 
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type LinearWebhookData = {
-  readonly id?: string
-  readonly body?: string
-  readonly userId?: string
-  readonly issueId?: string
-  readonly issue?: {
-    readonly id: string
-    readonly identifier: string
-  }
-  readonly user?: {
-    readonly id: string
-    readonly name: string
-    readonly email?: string
-  }
-}
-
-type LinearWebhookEvent = {
-  readonly type?: string
-  readonly data?: LinearWebhookData
-}
-
-type LinearUserResponse = {
-  readonly data?: {
-    readonly user?: {
-      readonly id: string
-      readonly name: string
-      readonly email?: string
-    }
-  }
-  readonly errors?: readonly { readonly message: string }[]
-}
-
 const fetchLinearUser = async (
-  apiKey: string,
+  getAuthToken: AuthTokenProvider,
   apiBase: string,
   userId: string,
 ): Promise<PlatformUser> => {
   return withSpan('linear.fetchUser', async () => {
+    const token = await getAuthToken()
     const query = `query { user(id: "${userId}") { id name email } }`
     const res = await fetch(apiBase, {
       method: 'POST',
       headers: {
-        Authorization: apiKey,
+        Authorization: token,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ query }),
@@ -84,7 +57,12 @@ const fetchLinearUser = async (
   })
 }
 
-export const createNormalizeInbound = (apiKey: string, apiBase: string, ctx: AdapterContext) => {
+export const createNormalizeInbound = (
+  getAuthToken: AuthTokenProvider,
+  apiBase: string,
+  ctx: AdapterContext,
+  sentCommentIds: Set<string>,
+) => {
   return async (rawEvent: unknown): Promise<InboundMessage> => {
     return withSpan('linear.normalizeInbound', async (): Promise<InboundMessage> => {
       const payload = rawEvent as LinearWebhookEvent
@@ -92,6 +70,10 @@ export const createNormalizeInbound = (apiKey: string, apiBase: string, ctx: Ada
 
       const issueId = data.issueId ?? data.issue?.id ?? ''
       const commentId = data.id ?? generateId()
+
+      if (sentCommentIds.has(commentId)) {
+        throw new Error('Skipping comment created by Atlas')
+      }
 
       ctx.channel = issueId
       ctx.threadId = null
@@ -105,7 +87,7 @@ export const createNormalizeInbound = (apiKey: string, apiBase: string, ctx: Ada
             displayName: data.user.name,
             email: data.user.email ?? null,
           }
-        : await fetchLinearUser(apiKey, apiBase, userId)
+        : await fetchLinearUser(getAuthToken, apiBase, userId)
 
       const platformRef: PlatformRef = {
         platform: 'linear',

@@ -1,0 +1,31 @@
+services:
+  neo4j:
+    image: neo4j:5-community
+    ports:
+      - '7687:7687'
+      - '7474:7474'
+    environment:
+      - NEO4J_AUTH=neo4j/atlas123
+    volumes:
+      - neo4j_data:/data
+
+  graphiti:
+    image: zepai/graphiti:latest
+    ports:
+      - '8000:8000'
+    user: root
+    environment:
+      - OPENAI_API_KEY=${ATLAS_AI_API_KEY:-sk-placeholder}
+      - OPENAI_BASE_URL=${ATLAS_AI_BASE_URL:-https://api.openai.com}/v1
+      - MODEL_NAME=${ATLAS_AI_MODEL:-gpt-4o-mini}
+      - EMBEDDING_MODEL_NAME=embed-marqo-ecommerce-b
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=atlas123
+    volumes:
+      - ./zep_graphiti_patched.py:/app/graph_service/zep_graphiti.py:ro
+    depends_on:
+      - neo4j
+
+volumes:
+  neo4j_data:

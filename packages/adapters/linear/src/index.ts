@@ -1,4 +1,6 @@
 export { createLinearAdapter } from './adapter'
-export type { LinearConfig } from './adapter'
+export type { LinearAdapterOptions } from './adapter'
+export type { LinearConfig, LinearOAuthConfig } from '@atlas/types'
 export { createWebhookHandler } from './webhook'
 export { LINEAR_CAPABILITIES } from './capabilities'
+export { buildAuthorizeUrl, exchangeCodeForToken, storeToken } from './oauth'

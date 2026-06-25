@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import type { PlatformAdapter, WebhookHandler, WebhookHandlerResult } from '@atlas/types'
-import type { LinearConfig } from './adapter'
+import type {
+  PlatformAdapter,
+  WebhookHandler,
+  WebhookHandlerResult,
+  LinearConfig,
+} from '@atlas/types'
 
 const verifySignature = (body: string, signature: string, secret: string): boolean => {
   const expected = createHmac('sha256', secret).update(body).digest('hex')

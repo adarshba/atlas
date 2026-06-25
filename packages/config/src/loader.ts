@@ -61,6 +61,9 @@ export const loadConfig = (): AtlasConfig => {
   const linear: LinearConfig = {
     apiKey: parsed.ATLAS_LINEAR_API_KEY ?? '',
     webhookSecret: parsed.ATLAS_LINEAR_WEBHOOK_SECRET ?? '',
+    oauthClientId: parsed.ATLAS_LINEAR_OAUTH_CLIENT_ID ?? '',
+    oauthClientSecret: parsed.ATLAS_LINEAR_OAUTH_CLIENT_SECRET ?? '',
+    oauthRedirectUri: parsed.ATLAS_LINEAR_OAUTH_REDIRECT_URI ?? '',
   }
 
   return { ai, redis, postgres, otel, graphiti, server, slack, discord, linear }

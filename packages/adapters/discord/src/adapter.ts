@@ -1,20 +1,10 @@
-import type { PlatformAdapter, PlatformUser } from '@atlas/types'
+import type { PlatformAdapter, PlatformUser, DiscordConfig, AdapterContext } from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 import { DISCORD_CAPABILITIES } from './capabilities'
 import { createNormalizeInbound, fetchDiscordUser } from './normalize'
 import { createSendResponse, createUpdateResponse } from './respond'
 import { createStartStream, createAppendStream, createStopStream } from './stream'
 import { createSetStatus, createClearStatus } from './status'
-
-export type DiscordConfig = {
-  readonly botToken: string
-  readonly applicationId: string
-}
-
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
 
 export const createDiscordAdapter = (config: DiscordConfig): PlatformAdapter => {
   const token = config.botToken

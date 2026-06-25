@@ -1,32 +1,16 @@
-import type { PlatformAdapter, PlatformUser } from '@atlas/types'
+import type {
+  PlatformAdapter,
+  PlatformUser,
+  SlackConfig,
+  AdapterContext,
+  SlackUserResponse,
+} from '@atlas/types'
 import { withSpan } from '@atlas/otel'
 import { SLACK_CAPABILITIES } from './capabilities'
 import { createNormalizeInbound } from './normalize'
 import { createSendResponse, createUpdateResponse } from './respond'
 import { createStartStream, createAppendStream, createStopStream } from './stream'
 import { createSetStatus, createClearStatus } from './status'
-
-export type SlackConfig = {
-  readonly botToken: string
-  readonly signingSecret: string
-}
-
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type SlackUserResponse = {
-  readonly ok: boolean
-  readonly user?: {
-    readonly id: string
-    readonly name: string
-    readonly profile?: {
-      readonly real_name?: string
-      readonly email?: string
-    }
-  }
-}
 
 export const createSlackAdapter = (config: SlackConfig): PlatformAdapter => {
   const token = config.botToken

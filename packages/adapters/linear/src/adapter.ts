@@ -1,34 +1,29 @@
-import type { PlatformAdapter, PlatformUser } from '@atlas/types'
+import type {
+  PlatformAdapter,
+  PlatformUser,
+  LinearConfig,
+  AuthTokenProvider,
+  OAuthChecker,
+  AdapterContext,
+  LinearUserResponse,
+} from '@atlas/types'
+import type { Redis } from '@atlas/cache'
 import { withSpan } from '@atlas/otel'
 import { LINEAR_CAPABILITIES } from './capabilities'
 import { createNormalizeInbound } from './normalize'
 import { createSendResponse, createUpdateResponse } from './respond'
 import { createStartStream, createAppendStream, createStopStream } from './stream'
 import { createSetStatus, createClearStatus } from './status'
+import { getToken } from './oauth'
 
-export type LinearConfig = {
-  readonly apiKey: string
-  readonly webhookSecret: string
+export type LinearAdapterOptions = {
+  readonly config: LinearConfig
+  readonly redis: Redis
 }
 
-type AdapterContext = {
-  channel: string
-  threadId: string | null
-}
-
-type LinearUserResponse = {
-  readonly data?: {
-    readonly user?: {
-      readonly id: string
-      readonly name: string
-      readonly email?: string
-    }
-  }
-  readonly errors?: readonly { readonly message: string }[]
-}
-
-export const createLinearAdapter = (config: LinearConfig): PlatformAdapter => {
-  const apiKey = config.apiKey
+export const createLinearAdapter = (options: LinearAdapterOptions): PlatformAdapter => {
+  const { config, redis } = options
+  const fallbackApiKey = config.apiKey
   const apiBase = 'https://api.linear.app/graphql'
 
   const ctx: AdapterContext = {
@@ -36,9 +31,22 @@ export const createLinearAdapter = (config: LinearConfig): PlatformAdapter => {
     threadId: null,
   }
 
-  const normalizeInbound = createNormalizeInbound(apiKey, apiBase, ctx)
-  const sendResponse = createSendResponse(apiKey, apiBase, ctx)
-  const updateResponse = createUpdateResponse(apiKey, apiBase, ctx)
+  const sentCommentIds = new Set<string>()
+
+  const getAuthToken: AuthTokenProvider = async () => {
+    const oauthToken = await getToken(redis)
+    if (oauthToken) return `Bearer ${oauthToken}`
+    return fallbackApiKey
+  }
+
+  const isOAuth: OAuthChecker = async () => {
+    const oauthToken = await getToken(redis)
+    return oauthToken !== null
+  }
+
+  const normalizeInbound = createNormalizeInbound(getAuthToken, apiBase, ctx, sentCommentIds)
+  const sendResponse = createSendResponse(getAuthToken, isOAuth, apiBase, ctx, sentCommentIds)
+  const updateResponse = createUpdateResponse(getAuthToken, apiBase, ctx)
   const startStream = createStartStream()
   const appendStream = createAppendStream()
   const stopStream = createStopStream()
@@ -49,11 +57,12 @@ export const createLinearAdapter = (config: LinearConfig): PlatformAdapter => {
 
   const resolveUser = async (platformUserId: string, _teamId: string): Promise<PlatformUser> => {
     return withSpan('linear.resolveUser', async (): Promise<PlatformUser> => {
+      const token = await getAuthToken()
       const query = `query { user(id: "${platformUserId}") { id name email } }`
       const res = await fetch(apiBase, {
         method: 'POST',
         headers: {
-          Authorization: apiKey,
+          Authorization: token,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query }),

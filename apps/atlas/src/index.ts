@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { randomUUID } from 'node:crypto'
 import { loadConfig } from '@atlas/config'
 import { initTelemetry, shutdownTelemetry } from '@atlas/otel'
 import * as db from '@atlas/db'
@@ -13,16 +14,22 @@ import {
   createReminderTool,
 } from '@atlas/tools'
 import { createRuntime, type RuntimeServices } from '@atlas/core'
-import type { WebhookRoute } from '@atlas/types'
+import type { WebhookRoute, HttpRoute } from '@atlas/types'
 import {
   createLinearAdapter,
   createWebhookHandler as createLinearWebhookHandler,
+  buildAuthorizeUrl,
+  exchangeCodeForToken,
+  storeToken,
+  type LinearOAuthConfig,
 } from '@atlas/linear'
 import { printConfig } from './banner'
 import { createServer } from './server'
 
 const SIGNALS = ['SIGINT', 'SIGTERM'] as const
 const MIGRATIONS_DIR = join(import.meta.dir, '../../../packages/db/migrations')
+const OAUTH_STATE_KEY = 'linear:oauth:state'
+const OAUTH_STATE_TTL_SECONDS = 300
 
 const checkHealth = async (name: string, check: () => Promise<boolean>): Promise<boolean> => {
   const ok = await check()
@@ -30,6 +37,56 @@ const checkHealth = async (name: string, check: () => Promise<boolean>): Promise
   const marker = ok ? '\x1b[32m' : '\x1b[31m'
   console.log(`  ${marker}${status}\x1b[0m  ${name}`)
   return ok
+}
+
+const buildOAuthRoutes = (
+  oauthConfig: LinearOAuthConfig,
+  redis: ReturnType<typeof cache.createRedis>,
+): readonly HttpRoute[] => {
+  const authorizeRoute = {
+    method: 'GET' as const,
+    path: '/oauth/linear/start',
+    handler: async (_req: Request, _url: URL): Promise<Response> => {
+      const state = randomUUID()
+      await redis.set(OAUTH_STATE_KEY, state, 'EX', OAUTH_STATE_TTL_SECONDS)
+      const authorizeUrl = buildAuthorizeUrl(oauthConfig, state)
+      return Response.redirect(authorizeUrl, 302)
+    },
+  }
+
+  const callbackRoute = {
+    method: 'GET' as const,
+    path: '/oauth/linear',
+    handler: async (_req: Request, url: URL): Promise<Response> => {
+      const code = url.searchParams.get('code')
+      const state = url.searchParams.get('state')
+
+      if (!code || !state) {
+        return new Response('Missing code or state parameters', { status: 400 })
+      }
+
+      const storedState = await redis.get(OAUTH_STATE_KEY)
+      if (!storedState || storedState !== state) {
+        return new Response('Invalid or expired state', { status: 400 })
+      }
+
+      await redis.del(OAUTH_STATE_KEY)
+
+      try {
+        const tokenResponse = await exchangeCodeForToken(oauthConfig, code)
+        await storeToken(redis, tokenResponse.access_token)
+        return new Response(
+          '<html><body><h1>Atlas OAuth Successful</h1><p>Atlas is now authorized to post on your behalf. You can close this window.</p></body></html>',
+          { status: 200, headers: { 'Content-Type': 'text/html' } },
+        )
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        return new Response(`OAuth token exchange failed: ${msg}`, { status: 500 })
+      }
+    },
+  }
+
+  return [authorizeRoute, callbackRoute]
 }
 
 const start = async (): Promise<void> => {
@@ -91,10 +148,7 @@ const start = async (): Promise<void> => {
   const runtime = createRuntime(services)
 
   const linearAdapter = config.linear.apiKey
-    ? createLinearAdapter({
-        apiKey: config.linear.apiKey,
-        webhookSecret: config.linear.webhookSecret,
-      })
+    ? createLinearAdapter({ config: config.linear, redis })
     : undefined
   const webhooks: readonly WebhookRoute[] = [
     ...(linearAdapter !== undefined
@@ -109,19 +163,45 @@ const start = async (): Promise<void> => {
       : []),
   ]
 
+  const hasOAuthConfig = Boolean(
+    config.linear.oauthClientId &&
+    config.linear.oauthClientSecret &&
+    config.linear.oauthRedirectUri,
+  )
+  const oauthRoutes: readonly HttpRoute[] = hasOAuthConfig
+    ? buildOAuthRoutes(
+        {
+          clientId: config.linear.oauthClientId,
+          clientSecret: config.linear.oauthClientSecret,
+          redirectUri: config.linear.oauthRedirectUri,
+        },
+        redis,
+      )
+    : []
+
   const server = createServer({
     port: config.server.port,
     runtime,
     webhooks,
+    routes: oauthRoutes,
   })
 
   console.log(`\nHTTP server listening on port ${config.server.port}`)
   for (const webhook of webhooks) {
     console.log(`  POST ${webhook.path}  — ${webhook.platform} webhook endpoint`)
   }
+  if (oauthRoutes.length > 0) {
+    console.log('  GET  /oauth/linear/start  — Linear OAuth authorize')
+    console.log('  GET  /oauth/linear        — Linear OAuth callback')
+  }
   console.log('  GET  /health           — Health check')
   if (linearAdapter) {
     console.log('  Linear adapter: configured')
+    if (hasOAuthConfig) {
+      console.log('  Linear OAuth: enabled')
+    } else {
+      console.log('  Linear OAuth: not configured (set ATLAS_LINEAR_OAUTH_* env vars)')
+    }
   } else {
     console.log('  Linear adapter: not configured (set ATLAS_LINEAR_API_KEY)')
   }

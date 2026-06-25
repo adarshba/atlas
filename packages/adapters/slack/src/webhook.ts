@@ -1,6 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
-import type { PlatformAdapter, WebhookHandler, WebhookHandlerResult } from '@atlas/types'
-import type { SlackConfig } from './adapter'
+import type {
+  PlatformAdapter,
+  WebhookHandler,
+  WebhookHandlerResult,
+  SlackConfig,
+} from '@atlas/types'
 
 const verifySignature = (
   body: string,

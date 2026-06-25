@@ -44,6 +44,9 @@ const discordSchema = z.object({
 const linearSchema = z.object({
   ATLAS_LINEAR_API_KEY: z.string().optional(),
   ATLAS_LINEAR_WEBHOOK_SECRET: z.string().optional(),
+  ATLAS_LINEAR_OAUTH_CLIENT_ID: z.string().optional(),
+  ATLAS_LINEAR_OAUTH_CLIENT_SECRET: z.string().optional(),
+  ATLAS_LINEAR_OAUTH_REDIRECT_URI: z.string().optional(),
 })
 
 export const envSchema = z.object({

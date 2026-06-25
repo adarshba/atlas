@@ -1,4 +1,7 @@
 export * from './platform'
+export * from './linear'
+export * from './slack'
+export * from './discord'
 export * from './events'
 export * from './tools'
 export * from './memory'

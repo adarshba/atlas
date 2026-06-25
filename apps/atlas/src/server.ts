@@ -1,11 +1,9 @@
 import type { Runtime } from '@atlas/core'
-import type { WebhookRoute } from '@atlas/types'
+import type { ServerOptions } from '@atlas/types'
 
-export const createServer = (options: {
-  readonly port: number
-  readonly runtime: Runtime
-  readonly webhooks: readonly WebhookRoute[]
-}) => {
+export const createServer = (options: ServerOptions<Runtime>) => {
+  const routes = options.routes ?? []
+
   return Bun.serve({
     port: options.port,
     async fetch(req): Promise<Response> {
@@ -15,18 +13,23 @@ export const createServer = (options: {
         return Response.json({ status: 'ok' })
       }
 
-      if (req.method === 'POST') {
-        const route = options.webhooks.find((webhook) => webhook.path === url.pathname)
-        if (!route) return new Response('Not found', { status: 404 })
+      const route = routes.find((r) => r.method === req.method && r.path === url.pathname)
+      if (route) {
+        return route.handler(req, url)
+      }
 
-        const result = await route.handler(req)
+      if (req.method === 'POST') {
+        const webhookRoute = options.webhooks.find((w) => w.path === url.pathname)
+        if (!webhookRoute) return new Response('Not found', { status: 404 })
+
+        const result = await webhookRoute.handler(req)
         if (!result.ok) return result.response
 
         const channelId = result.message.platformRef.channelId
         void options.runtime
           .handleMessage(result.message)
           .then(async (response) => {
-            await route.adapter.sendResponse({
+            await webhookRoute.adapter.sendResponse({
               text: response,
               blocks: null,
               threadId: channelId,
@@ -34,7 +37,7 @@ export const createServer = (options: {
           })
           .catch((err: unknown) => {
             console.error(
-              `${route.platform} webhook processing error:`,
+              `${webhookRoute.platform} webhook processing error:`,
               err instanceof Error ? err.message : String(err),
             )
           })

@@ -12,6 +12,6 @@ else
   exit 1
 fi
 
-COMPOSE_FILE="${COMPOSE_FILE:-docker/compose.yaml}"
+COMPOSE_FILE="${COMPOSE_FILE:-examples/compose.yaml}"
 
-exec $COMPOSE_CMD -f "$COMPOSE_FILE" "$@"
+exec $COMPOSE_CMD -f "$COMPOSE_FILE" --env-file .env "$@"

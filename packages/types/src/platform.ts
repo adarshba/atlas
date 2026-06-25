@@ -87,6 +87,29 @@ export type WebhookRoute = {
   readonly handler: WebhookHandler
 }
 
+export type AuthTokenProvider = () => Promise<string>
+export type OAuthChecker = () => Promise<boolean>
+
+export type AdapterContext = {
+  channel: string
+  threadId: string | null
+}
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+
+export type HttpRoute = {
+  readonly method: HttpMethod
+  readonly path: string
+  readonly handler: (req: Request, url: URL) => Promise<Response>
+}
+
+export type ServerOptions<R = unknown> = {
+  readonly port: number
+  readonly runtime: R
+  readonly webhooks: readonly WebhookRoute[]
+  readonly routes?: readonly HttpRoute[]
+}
+
 export type PlatformAdapter = {
   readonly platform: PlatformType
   normalizeInbound: (rawEvent: unknown) => Promise<InboundMessage>

@@ -176,6 +176,7 @@ All major decisions are documented in docs/adr/:
 - 0012 Bun workspaces with isolated linker
 - 0013 Manual OTel instrumentation over auto-instrumentation
 - 0014 ioredis over Bun native Redis client
+- 0015 MCP server configuration
 
 LICENSE
 

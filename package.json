@@ -1,0 +1,32 @@
+{
+  "name": "atlas",
+  "private": true,
+  "type": "module",
+  "workspaces": {
+    "packages": [
+      "packages/*",
+      "packages/adapters/*",
+      "apps/*"
+    ]
+  },
+  "scripts": {
+    "dev": "bun run --watch apps/local-dev/src/index.ts",
+    "build": "bun run scripts/build.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "compose": "bash compose.sh",
+    "compose:up": "bash compose.sh up -d",
+    "compose:down": "bash compose.sh down",
+    "compose:logs": "bash compose.sh logs -f"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.8.0",
+    "eslint": "^9.0.0",
+    "@eslint/js": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "prettier": "^3.4.0"
+  }
+}

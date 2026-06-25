@@ -83,7 +83,7 @@ apps/
 └── atlas/ @atlas/atlas — HTTP runtime, webhooks, wiring, Docker Compose
 
 docs/
-└── adr/ 14 architecture decision records
+└── adr/ architecture decision records
 
 docker/
 └── compose.yaml PostgreSQL, Redis, FalkorDB, Graphiti, OTEL Collector
@@ -103,6 +103,10 @@ ATLAS_AI_MODEL=openai/gpt-4o-mini
 Start infrastructure (requires podman or docker):
 
 bash compose.sh up -d
+
+Configure MCP servers:
+
+Edit mcp.toml. Stdio servers use type = "stdio" with command and args. Hosted servers use type = "http" with url. Use env_from or bearer_token_env for secrets instead of committing secret values.
 
 Run the Atlas HTTP runtime:
 

@@ -1,6 +1,6 @@
 [mcp_servers.filesystem]
 enabled = false
-transport = "stdio"
+type = "stdio"
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-filesystem", "."]
 timeout_ms = 30000
@@ -14,7 +14,7 @@ timeout_ms = 30000
 
 [mcp_servers.bitbucket]
 enabled = false
-transport = "stdio"
+type = "stdio"
 command = "npx"
 args = ["-y", "@nexus2520/bitbucket-mcp-server"]
 env_from = [

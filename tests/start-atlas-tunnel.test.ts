@@ -34,7 +34,7 @@ describe('Atlas MCP startup', () => {
     expect(mcpToml).toContain('[mcp_servers.github]')
     expect(mcpToml).toContain('[mcp_servers.bitbucket]')
     expect(mcpToml).toContain('type = "http"')
-    expect(mcpToml).toContain('transport = "stdio"')
+    expect(mcpToml).toContain('type = "stdio"')
     expect(mcpToml).toContain('url = "https://api.githubcopilot.com/mcp/"')
     expect(mcpToml).toContain('@nexus2520/bitbucket-mcp-server')
     expect(mcpToml).toContain('bearer_token_env = "GITHUB_PERSONAL_ACCESS_TOKEN"')

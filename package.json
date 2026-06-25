@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "bun run --watch apps/atlas/src/index.ts",
+    "dev:tunnel": "bash scripts/start-atlas-tunnel.sh",
     "build": "bun run scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",

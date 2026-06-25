@@ -45,7 +45,7 @@ packages/
     discord/          @atlas/discord — Discord adapter
     linear/           @atlas/linear — Linear adapter
 apps/
-  local-dev/          @atlas/local-dev — CLI + wiring
+  atlas/              @atlas/atlas — HTTP runtime + wiring
 docs/
   adr/                Architecture Decision Records
 docker/
@@ -208,9 +208,9 @@ Domain-organized type definitions using type aliases only:
 - Linear API client for responses
 - Capabilities: supportsStreaming = false
 
-### Step 17: apps/local-dev (@atlas/local-dev)
+### Step 17: apps/atlas (@atlas/atlas)
 
-- Interactive CLI — simulate events, see full pipeline execute
+- HTTP runtime — receive webhooks, expose health check, see full pipeline execute
 - bun run entry point with --watch
 - Wires all packages + adapters together
 - Shows OTel span tree in console for debugging
@@ -228,7 +228,7 @@ Domain-organized type definitions using type aliases only:
 
 - bun run typecheck — tsc --noEmit across all packages
 - bun test — unit tests for each package
-- bun run dev — local-dev CLI boots, can send a test message
+- bun run dev — Atlas HTTP runtime boots, health check responds
 - podman compose up — all services healthy
 - End-to-end: send message via CLI -> event flows through pipeline -> response generated
 

@@ -47,6 +47,23 @@ export type ServerConfig = {
   readonly port: number
 }
 
+export type McpServerConfig = {
+  readonly name: string
+  readonly transport: 'stdio' | 'streamable_http'
+  readonly command: string | null
+  readonly args: readonly string[]
+  readonly env: Readonly<Record<string, string>>
+  readonly url: string | null
+  readonly headers: Readonly<Record<string, string>>
+  readonly cwd: string | null
+  readonly enabled: boolean
+  readonly timeoutMs: number
+}
+
+export type McpConfig = {
+  readonly servers: readonly McpServerConfig[]
+}
+
 export type AtlasConfig = {
   readonly ai: AiConfig
   readonly redis: RedisConfig
@@ -57,4 +74,5 @@ export type AtlasConfig = {
   readonly slack: SlackConfig
   readonly discord: DiscordConfig
   readonly linear: LinearConfig
+  readonly mcp: McpConfig
 }

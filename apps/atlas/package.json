@@ -7,18 +7,20 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@atlas/types": "workspace:*",
-    "@atlas/config": "workspace:*",
-    "@atlas/otel": "workspace:*",
-    "@atlas/db": "workspace:*",
-    "@atlas/cache": "workspace:*",
-    "@atlas/events": "workspace:*",
     "@atlas/ai": "workspace:*",
-    "@atlas/memory": "workspace:*",
-    "@atlas/tools": "workspace:*",
-    "@atlas/jobs": "workspace:*",
+    "@atlas/cache": "workspace:*",
+    "@atlas/config": "workspace:*",
     "@atlas/core": "workspace:*",
+    "@atlas/db": "workspace:*",
+    "@atlas/events": "workspace:*",
+    "@atlas/jobs": "workspace:*",
+    "@atlas/linear": "workspace:*",
+    "@atlas/memory": "workspace:*",
+    "@atlas/otel": "workspace:*",
     "@atlas/primitives": "workspace:*",
-    "@atlas/linear": "workspace:*"
+    "@atlas/tools": "workspace:*",
+    "@atlas/types": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.24.0"
   }
 }

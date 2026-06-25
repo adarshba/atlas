@@ -24,6 +24,7 @@ import {
   type LinearOAuthConfig,
 } from '@atlas/linear'
 import { printConfig } from './banner'
+import { registerMcpServers } from './mcp'
 import { createServer } from './server'
 
 const SIGNALS = ['SIGINT', 'SIGTERM'] as const
@@ -133,6 +134,7 @@ const start = async (): Promise<void> => {
   tools.register(createSearchTool())
   tools.register(createHttpTool())
   tools.register(createReminderTool())
+  const closeMcpClients = await registerMcpServers(config.mcp.servers, tools)
 
   const services: RuntimeServices = {
     eventBus,
@@ -212,6 +214,7 @@ const start = async (): Promise<void> => {
     shuttingDown = true
     console.log('\nShutting down...')
     server.stop()
+    await Promise.allSettled(closeMcpClients.map((close) => close()))
     await eventBus.close()
     await redis.quit()
     await sql.end()

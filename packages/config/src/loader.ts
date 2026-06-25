@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { z } from 'zod'
 import type {
   AtlasConfig,
   AiConfig,
@@ -9,10 +12,88 @@ import type {
   SlackConfig,
   DiscordConfig,
   LinearConfig,
+  McpConfig,
+  McpServerConfig,
 } from '@atlas/types'
 import { envSchema, type RawEnv } from './schema'
 
 export type { RawEnv }
+
+const mcpTomlSchema = z
+  .object({
+    mcp_servers: z
+      .record(
+        z.object({
+          type: z.enum(['stdio', 'http']).optional(),
+          transport: z.enum(['stdio', 'streamable_http']).optional(),
+          command: z.string().min(1).nullable().default(null),
+          args: z.array(z.string()).default([]),
+          env: z.record(z.string()).default({}),
+          env_from: z.array(z.string().min(1)).default([]),
+          url: z.string().url().nullable().default(null),
+          headers: z.record(z.string()).default({}),
+          headers_from: z.record(z.string().min(1)).default({}),
+          bearer_token_env: z.string().min(1).nullable().default(null),
+          cwd: z.string().min(1).nullable().default(null),
+          enabled: z.boolean().default(true),
+          timeout_ms: z.number().int().positive().default(30000),
+        }),
+      )
+      .default({}),
+  })
+  .default({ mcp_servers: {} })
+
+const loadMcpConfig = (): McpConfig => {
+  const path = join(process.cwd(), 'mcp.toml')
+  if (!existsSync(path)) {
+    return { servers: [] }
+  }
+
+  const raw = readFileSync(path, 'utf8')
+  const parsed = mcpTomlSchema.parse(Bun.TOML.parse(raw))
+  const servers: McpServerConfig[] = Object.entries(parsed.mcp_servers).map(([name, server]) => {
+    const transport = server.transport ?? (server.type === 'http' ? 'streamable_http' : 'stdio')
+    const envFrom = Object.fromEntries(
+      server.env_from
+        .map((key) => [key, process.env[key]] as const)
+        .filter((entry): entry is readonly [string, string] => entry[1] !== undefined),
+    )
+    const headersFrom = Object.fromEntries(
+      Object.entries(server.headers_from)
+        .map(([header, key]) => [header, process.env[key]] as const)
+        .filter((entry): entry is readonly [string, string] => entry[1] !== undefined),
+    )
+    const bearerToken =
+      server.bearer_token_env !== null ? process.env[server.bearer_token_env] : undefined
+
+    if (transport === 'stdio' && server.command === null) {
+      throw new Error(`mcp.toml: ${name} requires command for stdio transport`)
+    }
+
+    if (transport === 'streamable_http' && server.url === null) {
+      throw new Error(`mcp.toml: ${name} requires url for streamable_http transport`)
+    }
+
+    return {
+      name,
+      transport,
+      command: server.command,
+      args: server.args,
+      env: { ...server.env, ...envFrom },
+      url: server.url,
+      headers: {
+        ...server.headers,
+        ...headersFrom,
+        ...(bearerToken !== undefined ? { Authorization: `Bearer ${bearerToken}` } : {}),
+      },
+      cwd: server.cwd,
+      enabled: server.enabled,
+      timeoutMs: server.timeout_ms,
+    }
+  })
+
+  return { servers }
+}
 
 export const loadConfig = (): AtlasConfig => {
   const parsed = envSchema.parse(process.env)
@@ -66,5 +147,7 @@ export const loadConfig = (): AtlasConfig => {
     oauthRedirectUri: parsed.ATLAS_LINEAR_OAUTH_REDIRECT_URI ?? '',
   }
 
-  return { ai, redis, postgres, otel, graphiti, server, slack, discord, linear }
+  const mcp = loadMcpConfig()
+
+  return { ai, redis, postgres, otel, graphiti, server, slack, discord, linear, mcp }
 }

@@ -4,6 +4,7 @@ import type {
   WebhookHandler,
   WebhookHandlerResult,
   LinearConfig,
+  LinearWebhookEvent,
 } from '@atlas/types'
 
 const verifySignature = (body: string, signature: string, secret: string): boolean => {
@@ -32,6 +33,11 @@ export const createWebhookHandler = (
       rawEvent = JSON.parse(body)
     } catch {
       return { ok: false, response: new Response('Invalid JSON', { status: 400 }) }
+    }
+
+    const event = rawEvent as LinearWebhookEvent
+    if (event.type && event.type !== 'Comment') {
+      return { ok: false, response: new Response('OK', { status: 200 }) }
     }
 
     try {

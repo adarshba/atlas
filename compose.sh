@@ -12,6 +12,6 @@ else
   exit 1
 fi
 
-COMPOSE_FILE="${COMPOSE_FILE:-docker/docker-compose.yml}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker/compose.yaml}"
 
 exec $COMPOSE_CMD -f "$COMPOSE_FILE" "$@"

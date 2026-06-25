@@ -1,0 +1,20 @@
+{
+  "name": "@atlas/core",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@atlas/types": "workspace:*",
+    "@atlas/otel": "workspace:*",
+    "@atlas/primitives": "workspace:*",
+    "@atlas/ai": "workspace:*",
+    "@atlas/memory": "workspace:*",
+    "@atlas/events": "workspace:*",
+    "@atlas/tools": "workspace:*",
+    "@atlas/cache": "workspace:*",
+    "@atlas/db": "workspace:*"
+  }
+}

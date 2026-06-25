@@ -1,0 +1,180 @@
+ATLAS
+
+Ατλας / アトラス
+A persistent AI teammate, not a chatbot.
+
+WHAT IS ATLAS?
+
+Atlas is an event-driven AI teammate platform built with:
+
+- Bun (runtime + package manager)
+- TypeScript (strict, type aliases only)
+- Vercel AI SDK (provider-agnostic via LiteLLM)
+- Graphiti + FalkorDB (temporal knowledge graphs for memory)
+- PostgreSQL (event persistence, no ORM)
+- Redis (cache + pub/sub)
+- BullMQ (background jobs)
+- OpenTelemetry (traces, metrics, logs — all through one collector)
+
+Platform-agnostic by design. Slack, Discord, and Linear are simply
+adapters around the same core engine. The runtime knows nothing about
+which platform it serves.
+
+FEATURES
+
+- single runtime across multiple communication platforms
+- platform adapters declare capabilities via flags, not type checks
+- event-driven architecture — everything is an immutable event
+- planner pipeline: observe, retrieve context, plan, execute tools, respond, persist memory
+- Graphiti-powered long-term memory with episodic, semantic, and graph layers
+- AI provider-agnostic — switch models via configuration only
+- OpenTelemetry on every operation — incoming event, model request, tool execution, memory retrieval, database query, outgoing message
+- tool registry with output truncation and OTel tracing
+- BullMQ parent-child job flows for async AI pipelines
+- zero interfaces, zero comments, zero dead code
+
+TECH STACK
+
+Core
+
+- Bun (runtime, package manager, test runner)
+- TypeScript (strict, exactOptionalPropertyTypes, noUncheckedIndexedAccess)
+- Vercel AI SDK + @ai-sdk/openai (OpenAI-compatible endpoint for LiteLLM)
+
+Data
+
+- PostgreSQL via postgres.js (no ORM, raw SQL, explicit queries)
+- Redis via ioredis (cache, pub/sub, BullMQ backend)
+- Graphiti REST API + FalkorDB (temporal knowledge graphs)
+
+Infrastructure
+
+- BullMQ (background jobs, rate limiting, parent-child flows)
+- OpenTelemetry (manual instrumentation, OTLP HTTP exporter)
+- Podman / Docker Compose (local infrastructure)
+
+Platforms
+
+- Slack (Web API via fetch, streaming via message editing)
+- Discord (REST API v10, streaming via message editing)
+- Linear (GraphQL API, no streaming)
+
+PROJECT STRUCTURE
+
+packages/
+├── types/            @atlas/types — domain types, zero deps
+├── primitives/       @atlas/primitives — result, async, time, id
+├── config/           @atlas/config — Zod-validated env config
+├── otel/             @atlas/otel — manual OTel, withSpan, metrics, logs
+├── db/               @atlas/db — postgres.js, migrations, traced queries
+├── cache/            @atlas/cache — ioredis, traced ops, pub/sub
+├── events/           @atlas/events — event bus, PostgreSQL persistence, Redis pub/sub
+├── ai/               @atlas/ai — Vercel SDK wrapper, generate, stream, structured, tools
+├── memory/           @atlas/memory — Graphiti REST client, episode storage, fact search
+├── tools/            @atlas/tools — registry, execution, builtins (search, http, reminder)
+├── jobs/             @atlas/jobs — BullMQ queues, workers, enqueue
+├── core/             @atlas/core — runtime engine, planner pipeline, session store
+└── adapters/
+    ├── slack/        @atlas/slack — Slack platform adapter
+    ├── discord/      @atlas/discord — Discord platform adapter
+    └── linear/       @atlas/linear — Linear platform adapter
+
+apps/
+└── local-dev/        @atlas/local-dev — interactive CLI, wiring, Docker Compose
+
+docs/
+└── adr/              14 architecture decision records
+
+docker/
+└── compose.yaml      PostgreSQL, Redis, FalkorDB, Graphiti, OTEL Collector
+
+DEVELOPMENT
+
+Install dependencies:
+
+bun install
+
+Copy .env defaults (already present in repo root):
+
+ATLAS_AI_BASE_URL=http://localhost:4000
+ATLAS_AI_API_KEY=sk-placeholder
+ATLAS_AI_MODEL=openai/gpt-4o-mini
+
+Start infrastructure (requires podman or docker):
+
+bash compose.sh up -d
+
+Run the local dev CLI:
+
+bun run dev
+
+COMMANDS
+
+bun run dev          Start local-dev CLI (interactive, --watch)
+bun run build        Build all packages (bun build + tsc declarations)
+bun run typecheck    Typecheck all packages (tsc --noEmit)
+bun test             Run tests (bun test)
+bun run lint         Lint with ESLint
+bun run format       Format with Prettier
+bash compose.sh up   Start infrastructure (podman or docker)
+bash compose.sh down Stop infrastructure
+
+ARCHITECTURE
+
+Platform events flow through a single pipeline:
+
+  Slack / Discord / Linear
+        |
+  Platform Adapters (normalize events, send responses)
+        |
+  Event Bus (immutable events, PostgreSQL persistence, Redis pub/sub)
+        |
+  Atlas Runtime (core engine — platform-agnostic)
+  +--------+----------+-----------+
+  |        |          |           |
+  Planner  Memory    Tool Manager
+  |        |          |
+  +--------+----------+
+        |
+  AI Provider (Vercel SDK -> LiteLLM)
+
+The planner pipeline: observe -> retrieve context -> plan ->
+execute tools -> generate response -> persist memory.
+
+Every step is traced with OpenTelemetry.
+
+DESIGN PRINCIPLES
+
+- Platform agnostic — core knows nothing about Slack, Discord, or Linear
+- Memory first — Graphiti manages episodic, semantic, and graph memory
+- Event driven — everything is an immutable event
+- Observable by default — every operation emits OTel spans
+- Replaceable — every dependency is swappable via configuration
+- Type aliases only — no interfaces, no inline types, no utility dumping grounds
+- Small focused modules — each package has one clear responsibility
+- Composition over inheritance — factory functions, not classes
+
+ARCHITECTURE DECISION RECORDS
+
+All major decisions are documented in docs/adr/:
+
+- 0001 Bun as runtime and package manager
+- 0002 Graphiti with FalkorDB for memory
+- 0003 BullMQ for background jobs
+- 0004 PostgreSQL without an ORM
+- 0005 Event bus architecture
+- 0006 Platform adapter pattern with capabilities
+- 0007 Vercel AI SDK with OpenAI-compatible provider
+- 0008 OpenTelemetry for all observability
+- 0009 Type aliases only (no interfaces)
+- 0010 Graphiti REST API integration approach
+- 0011 Package naming and monorepo structure
+- 0012 Bun workspaces with isolated linker
+- 0013 Manual OTel instrumentation over auto-instrumentation
+- 0014 ioredis over Bun native Redis client
+
+LICENSE
+
+MIT
+
+"A persistent teammate, not a chatbot."

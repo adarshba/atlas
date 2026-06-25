@@ -32,12 +32,12 @@ export const createSendResponse = (
       const useOAuth = await isOAuth()
       const issueId = envelope.threadId ?? ctx.channel
       const mutation = buildCreateMutation(issueId, envelope.text, useOAuth)
-      const res = await fetch(apiBase, {
+      const url = useOAuth ? `${apiBase}?actor=app` : apiBase
+      const res = await fetch(url, {
         method: 'POST',
         headers: {
           Authorization: token,
           'Content-Type': 'application/json',
-          ...(useOAuth ? { 'Linear-Actor': 'app' } : {}),
         },
         body: JSON.stringify({ query: mutation }),
       })

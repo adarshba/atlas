@@ -37,6 +37,7 @@ export const createSendResponse = (
         headers: {
           Authorization: token,
           'Content-Type': 'application/json',
+          ...(useOAuth ? { 'Linear-Actor': 'app' } : {}),
         },
         body: JSON.stringify({ query: mutation }),
       })
